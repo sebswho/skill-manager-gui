@@ -1,0 +1,77 @@
+name: Branch Protection
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  # 保护 main 分支
+  protect-main:
+    name: Protect Main Branch
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    
+    steps:
+    - name: Check if push is from dev
+      if: github.event_name == 'push'
+      run: |
+        echo "Push to main detected"
+        echo "Commit message: ${{ github.event.head_commit.message }}"
+        
+        # 检查是否是合并提交
+        if [[ "${{ github.event.head_commit.message }}" == *"Merge"* ]] || [[ "${{ github.event.head_commit.message }}" == *"Release"* ]]; then
+          echo "✅ This appears to be a merge from dev"
+        else
+          echo "⚠️ Warning: Direct push to main"
+          echo "Recommended: Use PR from dev branch"
+        fi
+    
+    - name: Require PR for main
+      if: github.event_name == 'pull_request'
+      run: |
+        if [ "${{ github.head_ref }}" != "dev" ]; then
+          echo "❌ ERROR: Only 'dev' branch can be merged into 'main'"
+          echo "Current head: ${{ github.head_ref }}"
+          exit 1
+        fi
+        echo "✅ PR from dev to main is allowed"
+
+  # 保护 dev 分支
+  protect-dev:
+    name: Protect Dev Branch
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' || github.base_ref == 'dev'
+    
+    steps:
+    - name: Check branch naming
+      if: github.event_name == 'pull_request'
+      run: |
+        HEAD_BRANCH="${{ github.head_ref }}"
+        
+        # 禁止 feature 分支直接 PR 到 dev
+        if [[ $HEAD_BRANCH == feature/* ]]; then
+          echo "❌ ERROR: Feature branches should not create PRs"
+          echo "   Workflow: Merge feature/* locally to dev, then push dev"
+          echo "   Or use: ./scripts/merge-to-dev.sh"
+          exit 1
+        fi
+        
+        # 允许 hotfix 分支
+        if [[ $HEAD_BRANCH == hotfix/* ]]; then
+          echo "✅ Hotfix branch PR accepted"
+          exit 0
+        fi
+        
+        # 允许其他特殊情况
+        echo "⚠️ Unusual branch name: $HEAD_BRANCH"
+        echo "Expected: dev merge or hotfix/*"
+    
+    - name: Notify about direct push
+      if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+      run: |
+        echo "📢 Direct push to dev by ${{ github.actor }}"
+        echo "Commit: ${{ github.event.head_commit.message }}"
+        echo ""
+        echo "Reminder: Feature branches should be merged locally, not pushed to remote"
