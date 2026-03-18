@@ -178,3 +178,192 @@ impl SkillsScanner {
             .sum()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use std::fs;
+    use crate::modules::file_operations::create_symlink;
+
+    #[test]
+    fn test_scan_central_hub_empty() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        fs::create_dir(&hub_path).unwrap();
+        
+        let scanner = SkillsScanner::new();
+        let skills = scanner.scan_central_hub(&hub_path.to_string_lossy());
+        
+        assert!(skills.is_empty());
+    }
+
+    #[test]
+    fn test_scan_central_hub_with_skills() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        fs::create_dir(&hub_path).unwrap();
+        
+        // Create skill directories
+        let skill1 = hub_path.join("skill-a");
+        let skill2 = hub_path.join("skill-b");
+        fs::create_dir(&skill1).unwrap();
+        fs::create_dir(&skill2).unwrap();
+        
+        // Add files to skills
+        fs::write(skill1.join("test.txt"), "content1").unwrap();
+        fs::write(skill2.join("test.txt"), "content2").unwrap();
+        
+        let scanner = SkillsScanner::new();
+        let skills = scanner.scan_central_hub(&hub_path.to_string_lossy());
+        
+        assert_eq!(skills.len(), 2);
+        let skill_names: Vec<_> = skills.iter().map(|s| s.name.clone()).collect();
+        assert!(skill_names.contains(&"skill-a".to_string()));
+        assert!(skill_names.contains(&"skill-b".to_string()));
+    }
+
+    #[test]
+    fn test_scan_central_hub_nonexistent() {
+        let scanner = SkillsScanner::new();
+        let skills = scanner.scan_central_hub("/nonexistent/path");
+        
+        assert!(skills.is_empty());
+    }
+
+    #[test]
+    fn test_scan_agent_empty() {
+        let temp_dir = TempDir::new().unwrap();
+        let agent_path = temp_dir.path().join("agent/skills");
+        fs::create_dir_all(&agent_path).unwrap();
+        
+        let agent = Agent {
+            id: "test-agent".to_string(),
+            name: "Test Agent".to_string(),
+            skills_path: agent_path.to_string_lossy().to_string(),
+            is_discovered: false,
+        };
+        
+        let scanner = SkillsScanner::new();
+        let hub_path = temp_dir.path().join("hub");
+        let statuses = scanner.scan_agent(&agent, &hub_path.to_string_lossy());
+        
+        assert!(statuses.is_empty());
+    }
+
+    #[test]
+    fn test_scan_agent_with_symlink() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        let agent_path = temp_dir.path().join("agent/skills");
+        fs::create_dir_all(&hub_path).unwrap();
+        fs::create_dir_all(&agent_path).unwrap();
+        
+        // Create a skill in hub
+        let hub_skill = hub_path.join("skill-a");
+        fs::create_dir(&hub_skill).unwrap();
+        fs::write(hub_skill.join("file.txt"), "content").unwrap();
+        
+        // Create symlink from agent to hub
+        let agent_skill = agent_path.join("skill-a");
+        create_symlink(&hub_skill, &agent_skill).unwrap();
+        
+        let agent = Agent {
+            id: "test-agent".to_string(),
+            name: "Test Agent".to_string(),
+            skills_path: agent_path.to_string_lossy().to_string(),
+            is_discovered: false,
+        };
+        
+        let scanner = SkillsScanner::new();
+        let statuses = scanner.scan_agent(&agent, &hub_path.to_string_lossy());
+        
+        assert_eq!(statuses.len(), 1);
+        assert_eq!(statuses[0].skill_name, "skill-a");
+        assert!(matches!(statuses[0].status, SyncStatus::Synced));
+        assert!(statuses[0].is_symlink);
+    }
+
+    #[test]
+    fn test_scan_agent_with_new_skill() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        let agent_path = temp_dir.path().join("agent/skills");
+        fs::create_dir_all(&hub_path).unwrap();
+        fs::create_dir_all(&agent_path).unwrap();
+        
+        // Create a skill directly in agent (not in hub)
+        let agent_skill = agent_path.join("new-skill");
+        fs::create_dir(&agent_skill).unwrap();
+        fs::write(agent_skill.join("file.txt"), "content").unwrap();
+        
+        let agent = Agent {
+            id: "test-agent".to_string(),
+            name: "Test Agent".to_string(),
+            skills_path: agent_path.to_string_lossy().to_string(),
+            is_discovered: false,
+        };
+        
+        let scanner = SkillsScanner::new();
+        let statuses = scanner.scan_agent(&agent, &hub_path.to_string_lossy());
+        
+        assert_eq!(statuses.len(), 1);
+        assert_eq!(statuses[0].skill_name, "new-skill");
+        assert!(matches!(statuses[0].status, SyncStatus::New));
+        assert!(!statuses[0].is_symlink);
+    }
+
+    #[test]
+    fn test_scan_all_integration() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        let agent1_path = temp_dir.path().join("agent1/skills");
+        let agent2_path = temp_dir.path().join("agent2/skills");
+        
+        fs::create_dir_all(&hub_path).unwrap();
+        fs::create_dir_all(&agent1_path).unwrap();
+        fs::create_dir_all(&agent2_path).unwrap();
+        
+        // Create skill in hub
+        let hub_skill = hub_path.join("shared-skill");
+        fs::create_dir(&hub_skill).unwrap();
+        fs::write(hub_skill.join("file.txt"), "hub content").unwrap();
+        
+        // Create symlink in agent1
+        let agent1_skill = agent1_path.join("shared-skill");
+        create_symlink(&hub_skill, &agent1_skill).unwrap();
+        
+        // Create different skill in agent2
+        let agent2_skill = agent2_path.join("local-skill");
+        fs::create_dir(&agent2_skill).unwrap();
+        fs::write(agent2_skill.join("file.txt"), "local content").unwrap();
+        
+        let agents = vec![
+            Agent {
+                id: "agent1".to_string(),
+                name: "Agent 1".to_string(),
+                skills_path: agent1_path.to_string_lossy().to_string(),
+                is_discovered: false,
+            },
+            Agent {
+                id: "agent2".to_string(),
+                name: "Agent 2".to_string(),
+                skills_path: agent2_path.to_string_lossy().to_string(),
+                is_discovered: false,
+            },
+        ];
+        
+        let scanner = SkillsScanner::new();
+        let result = scanner.scan_all(&agents, &hub_path.to_string_lossy());
+        
+        // Should find shared-skill from hub
+        assert_eq!(result.skills.len(), 1);
+        assert_eq!(result.skills[0].name, "shared-skill");
+        
+        // Should find agent statuses
+        assert_eq!(result.agent_statuses.len(), 2);
+        
+        // Should detect pending change (local-skill needs to be added to hub)
+        assert_eq!(result.pending_changes.len(), 1);
+    }
+}
