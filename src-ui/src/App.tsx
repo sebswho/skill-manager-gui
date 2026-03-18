@@ -4,6 +4,8 @@ import { SkillList } from '@/components/skills/SkillList';
 import { SyncMatrix } from '@/components/sync/SyncMatrix';
 import { SyncActions } from '@/components/sync/SyncActions';
 import { SettingsDrawer } from '@/components/settings/SettingsDrawer';
+import { ConflictList } from '@/components/conflicts/ConflictList';
+import { ConflictResolutionDialog } from '@/components/conflicts/ConflictResolutionDialog';
 import { useConfig } from '@/hooks/useConfig';
 import { useAgents } from '@/hooks/useAgents';
 import { useSkills } from '@/hooks/useSkills';
@@ -36,13 +38,15 @@ function App() {
           <SkillList />
         </div>
         <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden p-4">
+            <ConflictList />
             <SyncMatrix />
           </div>
           <SyncActions />
         </div>
       </div>
       <SettingsDrawer />
+      <ConflictResolutionDialog />
     </MainLayout>
   );
 }
