@@ -5,7 +5,7 @@ import { useAppStore } from '@/stores/appStore';
 
 export function Header() {
   const { scanAll } = useSkills();
-  const { isLoading, pendingChanges } = useAppStore();
+  const { isLoading, pendingChanges, setIsSettingsOpen } = useAppStore();
 
   return (
     <header className="border-b px-4 py-3 flex items-center justify-between bg-card">
@@ -28,7 +28,11 @@ export function Header() {
           <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setIsSettingsOpen(true)}
+        >
           <Settings className="w-4 h-4 mr-2" />
           Settings
         </Button>

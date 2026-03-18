@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { SkillList } from '@/components/skills/SkillList';
 import { SyncMatrix } from '@/components/sync/SyncMatrix';
 import { SyncActions } from '@/components/sync/SyncActions';
+import { SettingsDrawer } from '@/components/settings/SettingsDrawer';
 import { useConfig } from '@/hooks/useConfig';
 import { useAgents } from '@/hooks/useAgents';
 import { useSkills } from '@/hooks/useSkills';
@@ -41,6 +42,7 @@ function App() {
           <SyncActions />
         </div>
       </div>
+      <SettingsDrawer />
     </MainLayout>
   );
 }
