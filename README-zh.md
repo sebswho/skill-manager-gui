@@ -166,4 +166,4 @@ cargo test sync_engine
 
 ## 许可证
 
-[GNU Lesser General Public License v2.1 (LGPL-2.1)](./LICENSE)
+[GNU Lesser General Public License v3.0 (LGPL-3.0)](./LICENSE)

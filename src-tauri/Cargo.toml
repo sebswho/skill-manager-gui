@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A unified GUI for managing AI Agent Skills across multiple agents"
 authors = ["sebswho"]
 edition = "2021"
-license = "LGPL-2.1"
+license = "LGPL-3.0"
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }
