@@ -132,3 +132,62 @@ pub fn is_path_inside(child: &Path, parent: &Path) -> bool {
         Err(_) => false,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_copy_directory() {
+        let temp_dir = TempDir::new().unwrap();
+        let src = temp_dir.path().join("src");
+        let dest = temp_dir.path().join("dest");
+
+        fs::create_dir(&src).unwrap();
+        fs::write(src.join("file.txt"), "hello world").unwrap();
+
+        copy_directory(&src, &dest).unwrap();
+
+        assert!(dest.exists());
+        assert!(dest.join("file.txt").exists());
+        assert_eq!(fs::read_to_string(dest.join("file.txt")).unwrap(), "hello world");
+    }
+
+    #[test]
+    fn test_delete_directory() {
+        let temp_dir = TempDir::new().unwrap();
+        let dir = temp_dir.path().join("test_dir");
+
+        fs::create_dir(&dir).unwrap();
+        fs::write(dir.join("file.txt"), "content").unwrap();
+
+        assert!(dir.exists());
+
+        delete_directory(&dir).unwrap();
+
+        assert!(!dir.exists());
+    }
+
+    #[test]
+    fn test_calculate_directory_hash() {
+        let temp_dir = TempDir::new().unwrap();
+        let dir = temp_dir.path().join("hash_test");
+
+        fs::create_dir(&dir).unwrap();
+        fs::write(dir.join("a.txt"), "hello").unwrap();
+        fs::write(dir.join("b.txt"), "world").unwrap();
+
+        let hash = calculate_directory_hash(&dir).unwrap();
+
+        // Hash should be deterministic
+        let hash2 = calculate_directory_hash(&dir).unwrap();
+        assert_eq!(hash, hash2);
+
+        // Changing content should change hash
+        fs::write(dir.join("a.txt"), "modified").unwrap();
+        let hash3 = calculate_directory_hash(&dir).unwrap();
+        assert_ne!(hash, hash3);
+    }
+}

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/stores/appStore';
 import { useSync } from '@/hooks/useSync';
-import { Sync } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export function SyncActions() {
   const { 
@@ -48,7 +48,7 @@ export function SyncActions() {
             variant="secondary"
             onClick={handleSyncAllPending}
           >
-            <Sync className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-4 h-4 mr-2" />
             Sync All Pending ({pendingChanges.length})
           </Button>
         )}
@@ -57,7 +57,7 @@ export function SyncActions() {
           disabled={selectedCount === 0 || agentCount === 0}
           onClick={handleSyncSelected}
         >
-          <Sync className="w-4 h-4 mr-2" />
+          <RefreshCw className="w-4 h-4 mr-2" />
           Sync Selected
         </Button>
       </div>

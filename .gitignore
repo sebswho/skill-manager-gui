@@ -22,3 +22,10 @@
 *.out
 data
 build
+
+# Rust build artifacts
+src-tauri/target/
+
+# Frontend build
+dist/
+node_modules/

@@ -1,12 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '@/stores/appStore';
-import type { ScanResult, Skill } from '@/types';
+import type { ScanResult, Skill, SyncStatus } from '@/types';
 
 export function useSkills() {
   const { 
     config, 
     setSkills, 
-    setAgents, 
     setSyncMatrix, 
     setPendingChanges, 
     setConflicts,
@@ -44,7 +43,7 @@ export function useSkills() {
       setConflicts(result.conflicts);
       
       // Build sync matrix
-      const matrix: Record<string, Record<string, string>> = {};
+      const matrix: Record<string, Record<string, SyncStatus>> = {};
       result.skills.forEach(skill => {
         matrix[skill.name] = {};
         agents.forEach(agent => {
