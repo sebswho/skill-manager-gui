@@ -110,3 +110,5 @@ pub fn update_locale(locale: String, state: State<AppState>) -> Result<AppConfig
         .update_locale(locale)
         .map_err(sanitize_error)
 }
+
+

@@ -272,4 +272,66 @@ mod tests {
         let imported = manager.import(&export_path).unwrap();
         assert_eq!(imported.central_hub_path, "/export/test");
     }
+
+    #[test]
+    fn test_update_theme() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Update theme to dark
+        let config = manager.update_theme("dark".to_string()).unwrap();
+        assert_eq!(config.theme, Some("dark".to_string()));
+        
+        // Verify it was saved
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.theme, Some("dark".to_string()));
+    }
+
+    #[test]
+    fn test_update_locale() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Update locale to English
+        let config = manager.update_locale("en".to_string()).unwrap();
+        assert_eq!(config.locale, Some("en".to_string()));
+        
+        // Verify it was saved
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.locale, Some("en".to_string()));
+    }
+
+    #[test]
+    fn test_theme_and_locale_integration() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Set both theme and locale
+        manager.update_theme("dark".to_string()).unwrap();
+        manager.update_locale("en".to_string()).unwrap();
+        
+        // Verify both persisted together
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.theme, Some("dark".to_string()));
+        assert_eq!(loaded.locale, Some("en".to_string()));
+    }
+
+    #[test]
+    fn test_default_theme_and_locale() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Load default config
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.theme, Some("light".to_string()));
+        assert_eq!(loaded.locale, Some("zh-CN".to_string()));
+    }
 }
