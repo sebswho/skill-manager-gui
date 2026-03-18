@@ -87,3 +87,175 @@ impl ConfigManager {
         Ok(config)
     }
 }
+
+#[cfg(test)]
+impl ConfigManager {
+    pub fn with_path(path: PathBuf) -> Self {
+        Self { config_path: path }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_config_manager_new_creates_directory() {
+        // Note: This test uses the default config directory
+        // In CI environments or isolated test runs, this is acceptable
+        let result = ConfigManager::new();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_load_returns_default_when_no_config() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        // Create a test-specific ConfigManager that uses temp path
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        let config = manager.load().unwrap();
+        assert!(!config.central_hub_path.is_empty());
+        assert!(config.agents.is_empty());
+        
+        // Verify file was created
+        assert!(config_path.exists());
+    }
+
+    #[test]
+    fn test_save_and_load_roundtrip() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        let mut config = AppConfig::default();
+        config.central_hub_path = "/test/path".to_string();
+        config.agents.push(Agent {
+            id: "test-agent".to_string(),
+            name: "Test Agent".to_string(),
+            skills_path: "/test/skills".to_string(),
+            is_discovered: false,
+        });
+        
+        manager.save(&config).unwrap();
+        
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.central_hub_path, "/test/path");
+        assert_eq!(loaded.agents.len(), 1);
+        assert_eq!(loaded.agents[0].id, "test-agent");
+    }
+
+    #[test]
+    fn test_add_agent() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        let agent = Agent {
+            id: "new-agent".to_string(),
+            name: "New Agent".to_string(),
+            skills_path: "/new/skills".to_string(),
+            is_discovered: false,
+        };
+        
+        let config = manager.add_agent(agent).unwrap();
+        assert_eq!(config.agents.len(), 1);
+        assert_eq!(config.agents[0].id, "new-agent");
+        
+        // Verify it was saved
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.agents.len(), 1);
+    }
+
+    #[test]
+    fn test_add_agent_replaces_existing() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        let agent1 = Agent {
+            id: "agent-1".to_string(),
+            name: "Agent One".to_string(),
+            skills_path: "/path/one".to_string(),
+            is_discovered: false,
+        };
+        
+        let agent2 = Agent {
+            id: "agent-1".to_string(),  // Same ID
+            name: "Agent Updated".to_string(),
+            skills_path: "/path/two".to_string(),
+            is_discovered: false,
+        };
+        
+        manager.add_agent(agent1).unwrap();
+        let config = manager.add_agent(agent2).unwrap();
+        
+        assert_eq!(config.agents.len(), 1);
+        assert_eq!(config.agents[0].name, "Agent Updated");
+    }
+
+    #[test]
+    fn test_remove_agent() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        let agent = Agent {
+            id: "to-remove".to_string(),
+            name: "To Remove".to_string(),
+            skills_path: "/remove/path".to_string(),
+            is_discovered: false,
+        };
+        
+        manager.add_agent(agent).unwrap();
+        let config = manager.remove_agent("to-remove").unwrap();
+        
+        assert!(config.agents.is_empty());
+    }
+
+    #[test]
+    fn test_update_central_hub_path() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        let config = manager.update_central_hub_path("/new/hub/path".to_string()).unwrap();
+        assert_eq!(config.central_hub_path, "/new/hub/path");
+        
+        // Verify it was saved
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.central_hub_path, "/new/hub/path");
+    }
+
+    #[test]
+    fn test_export_and_import() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        let export_path = temp_dir.path().join("exported.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Setup initial config
+        let mut config = AppConfig::default();
+        config.central_hub_path = "/export/test".to_string();
+        manager.save(&config).unwrap();
+        
+        // Export
+        manager.export(&export_path).unwrap();
+        assert!(export_path.exists());
+        
+        // Modify original
+        manager.update_central_hub_path("/modified".to_string()).unwrap();
+        
+        // Import
+        let imported = manager.import(&export_path).unwrap();
+        assert_eq!(imported.central_hub_path, "/export/test");
+    }
+}
