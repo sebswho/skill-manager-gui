@@ -8,6 +8,9 @@ use commands::config_commands::{
     add_agent, export_config, import_config, load_config, remove_agent, save_config,
     update_central_hub_path, AppState,
 };
+use commands::dialog_commands::{
+    pick_directory, pick_directory_with_default,
+};
 use commands::scan_commands::{
     discover_agents, scan_all, scan_central_hub, validate_agent_path,
 };
@@ -22,6 +25,7 @@ fn main() {
     let config_manager = ConfigManager::new().expect("Failed to initialize config manager");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             config_manager: Mutex::new(config_manager),
         })
@@ -34,6 +38,9 @@ fn main() {
             add_agent,
             remove_agent,
             update_central_hub_path,
+            // Dialog commands
+            pick_directory,
+            pick_directory_with_default,
             // Scan commands
             discover_agents,
             validate_agent_path,

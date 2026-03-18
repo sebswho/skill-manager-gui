@@ -10,15 +10,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
+import { Plus, FolderOpen } from "lucide-react";
 import { useConfig } from "@/hooks/useConfig";
 import { useAgents } from "@/hooks/useAgents";
+import { useDialog } from "@/hooks/useDialog";
 import type { Agent } from "@/types";
 
 export function AddAgentDialog() {
   const [open, setOpen] = useState(false);
   const { addAgent } = useConfig();
   const { validateAgentPath } = useAgents();
+  const { pickDirectory, pickDirectoryWithDefault } = useDialog();
   
   // Quick add state
   const [quickPath, setQuickPath] = useState("");
@@ -103,6 +105,21 @@ export function AddAgentDialog() {
     }
   };
 
+  const handleBrowseQuick = async () => {
+    const selected = await pickDirectory();
+    if (selected) {
+      setQuickPath(selected);
+    }
+  };
+
+  const handleBrowseFull = async () => {
+    const defaultPath = fullPath || "~";
+    const selected = await pickDirectoryWithDefault(defaultPath);
+    if (selected) {
+      setFullPath(selected);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -125,12 +142,24 @@ export function AddAgentDialog() {
           <TabsContent value="quick" className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="quick-path">Skills Directory Path</Label>
-              <Input
-                id="quick-path"
-                value={quickPath}
-                onChange={(e) => setQuickPath(e.target.value)}
-                placeholder="/path/to/.agent/skills"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="quick-path"
+                  value={quickPath}
+                  onChange={(e) => setQuickPath(e.target.value)}
+                  placeholder="/path/to/.agent/skills"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleBrowseQuick}
+                  title="Browse directory"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 Agent name will be inferred from the path automatically.
               </p>
@@ -166,12 +195,24 @@ export function AddAgentDialog() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="full-path">Skills Directory Path</Label>
-              <Input
-                id="full-path"
-                value={fullPath}
-                onChange={(e) => setFullPath(e.target.value)}
-                placeholder="/path/to/.agent/skills"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="full-path"
+                  value={fullPath}
+                  onChange={(e) => setFullPath(e.target.value)}
+                  placeholder="/path/to/.agent/skills"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleBrowseFull}
+                  title="Browse directory"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <Button 
