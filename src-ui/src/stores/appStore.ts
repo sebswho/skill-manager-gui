@@ -31,6 +31,10 @@ interface AppState {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   
+  // Settings UI State
+  isSettingsOpen: boolean;
+  setIsSettingsOpen: (open: boolean) => void;
+  
   // Selection
   selectedSkills: Set<string>;
   setSelectedSkills: (skills: Set<string>) => void;
@@ -85,6 +89,10 @@ export const useAppStore = create<AppState>((set) => ({
   // Loading State
   isLoading: false,
   setIsLoading: (isLoading) => set({ isLoading }),
+  
+  // Settings UI State
+  isSettingsOpen: false,
+  setIsSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
   
   // Selection
   selectedSkills: new Set(),
