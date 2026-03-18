@@ -163,3 +163,12 @@ playwright-report/
 *.out
 data/
 build/
+
+# OpenSpec - development workflow tool, optional
+openspec/
+.openspec/
+
+# AI agent skill directories
+.agent/
+.agents/
+.claude/
