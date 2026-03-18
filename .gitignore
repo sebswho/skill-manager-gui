@@ -1,0 +1,24 @@
+# system
+.DS_Store
+
+# dev
+.vscode
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.iflow/
+.opencode/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.playwright-cli/
+.codebuddy/
+.workbuddy/
+
+# output datas
+*.out
+data
+build
