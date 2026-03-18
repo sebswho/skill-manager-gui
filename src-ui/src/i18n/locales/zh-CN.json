@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "Agent Skills Manager",
+    "description": "跨智能体技能同步管理工具"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "close": "关闭",
+    "loading": "加载中...",
+    "error": "出错了",
+    "success": "成功",
+    "refresh": "刷新",
+    "settings": "设置",
+    "confirm": "确认",
+    "browse": "浏览"
+  },
+  "settings": {
+    "title": "设置",
+    "theme": {
+      "title": "主题",
+      "light": "亮色",
+      "dark": "暗色"
+    },
+    "language": {
+      "title": "语言",
+      "zhCN": "中文 (简体)",
+      "en": "English"
+    },
+    "hubPath": {
+      "title": "技能中心路径",
+      "description": "所有技能的集中存储位置"
+    },
+    "agents": {
+      "title": "智能体",
+      "description": "已配置的智能体列表",
+      "addButton": "添加智能体",
+      "name": "名称",
+      "path": "路径",
+      "quickAdd": "快速添加",
+      "fullForm": "完整表单",
+      "agentName": "智能体名称",
+      "agentId": "智能体ID",
+      "skillsPath": "技能目录路径",
+      "agentType": "智能体类型",
+      "custom": "自定义"
+    }
+  },
+  "skills": {
+    "title": "技能列表",
+    "scan": "扫描技能",
+    "noSkills": "暂无技能",
+    "search": "搜索技能...",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "selected": "已选择 {count} 项"
+  },
+  "sync": {
+    "title": "同步矩阵",
+    "syncToHub": "同步到中心",
+    "syncFromHub": "从中心同步",
+    "batchSync": "批量同步",
+    "status": {
+      "synced": "已同步",
+      "pending": "待同步",
+      "conflict": "冲突",
+      "missing": "缺失",
+      "new": "新增"
+    },
+    "pendingChanges": "{count} 个待处理更改"
+  },
+  "conflicts": {
+    "title": "冲突解决",
+    "description": "以下技能存在版本冲突",
+    "noConflicts": "没有冲突",
+    "useHub": "使用中心版本",
+    "useAgent": "使用智能体版本",
+    "merge": "合并",
+    "viewDiff": "查看差异",
+    "recommendation": "推荐方案",
+    "conflictDetail": "冲突详情"
+  },
+  "dialog": {
+    "addAgent": {
+      "title": "添加智能体",
+      "quickAddDescription": "输入技能目录路径，自动识别智能体",
+      "fullFormDescription": "手动填写智能体信息"
+    },
+    "conflictResolution": {
+      "title": "解决冲突",
+      "skill": "技能",
+      "hubVersion": "中心版本",
+      "agentVersion": "智能体版本",
+      "currentAction": "当前操作"
+    }
+  }
+}

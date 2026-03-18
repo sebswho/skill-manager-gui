@@ -86,6 +86,20 @@ impl ConfigManager {
         self.save(&config)?;
         Ok(config)
     }
+    
+    pub fn update_theme(&self, theme: String) -> Result<AppConfig> {
+        let mut config = self.load()?;
+        config.theme = Some(theme);
+        self.save(&config)?;
+        Ok(config)
+    }
+    
+    pub fn update_locale(&self, locale: String) -> Result<AppConfig> {
+        let mut config = self.load()?;
+        config.locale = Some(locale);
+        self.save(&config)?;
+        Ok(config)
+    }
 }
 
 #[cfg(test)]

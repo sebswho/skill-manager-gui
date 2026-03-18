@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Agent, AppConfig, Conflict, PendingChange, Skill, SyncStatus } from '@/types';
+import type { Agent, AppConfig, Conflict, PendingChange, Skill, SyncStatus, Theme, Locale } from '@/types';
 
 interface AppState {
   // Config
@@ -40,6 +40,14 @@ interface AppState {
   // Settings UI State
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
+  
+  // Theme
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  
+  // Locale
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
   
   // Selection
   selectedSkills: Set<string>;
@@ -107,6 +115,14 @@ export const useAppStore = create<AppState>((set) => ({
   // Settings UI State
   isSettingsOpen: false,
   setIsSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
+  
+  // Theme
+  theme: 'light',
+  setTheme: (theme) => set({ theme }),
+  
+  // Locale
+  locale: 'zh-CN',
+  setLocale: (locale) => set({ locale }),
   
   // Selection
   selectedSkills: new Set(),

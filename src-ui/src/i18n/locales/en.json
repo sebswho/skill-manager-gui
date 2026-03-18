@@ -1,0 +1,100 @@
+{
+  "app": {
+    "title": "Agent Skills Manager",
+    "description": "Cross-agent skill synchronization management tool"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "refresh": "Refresh",
+    "settings": "Settings",
+    "confirm": "Confirm",
+    "browse": "Browse"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": {
+      "title": "Language",
+      "zhCN": "中文 (简体)",
+      "en": "English"
+    },
+    "hubPath": {
+      "title": "Central Hub Path",
+      "description": "Central storage location for all skills"
+    },
+    "agents": {
+      "title": "Agents",
+      "description": "List of configured agents",
+      "addButton": "Add Agent",
+      "name": "Name",
+      "path": "Path",
+      "quickAdd": "Quick Add",
+      "fullForm": "Full Form",
+      "agentName": "Agent Name",
+      "agentId": "Agent ID",
+      "skillsPath": "Skills Directory Path",
+      "agentType": "Agent Type",
+      "custom": "Custom"
+    }
+  },
+  "skills": {
+    "title": "Skills",
+    "scan": "Scan Skills",
+    "noSkills": "No skills available",
+    "search": "Search skills...",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "selected": "{count} selected"
+  },
+  "sync": {
+    "title": "Sync Matrix",
+    "syncToHub": "Sync to Hub",
+    "syncFromHub": "Sync from Hub",
+    "batchSync": "Batch Sync",
+    "status": {
+      "synced": "Synced",
+      "pending": "Pending",
+      "conflict": "Conflict",
+      "missing": "Missing",
+      "new": "New"
+    },
+    "pendingChanges": "{count} pending changes"
+  },
+  "conflicts": {
+    "title": "Conflict Resolution",
+    "description": "The following skills have version conflicts",
+    "noConflicts": "No conflicts",
+    "useHub": "Use Hub Version",
+    "useAgent": "Use Agent Version",
+    "merge": "Merge",
+    "viewDiff": "View Diff",
+    "recommendation": "Recommendation",
+    "conflictDetail": "Conflict Detail"
+  },
+  "dialog": {
+    "addAgent": {
+      "title": "Add Agent",
+      "quickAddDescription": "Enter skills directory path to auto-detect agent",
+      "fullFormDescription": "Manually fill in agent information"
+    },
+    "conflictResolution": {
+      "title": "Resolve Conflict",
+      "skill": "Skill",
+      "hubVersion": "Hub Version",
+      "agentVersion": "Agent Version",
+      "currentAction": "Current Action"
+    }
+  }
+}
