@@ -1,4 +1,4 @@
-use crate::modules::file_operations::{copy_directory, create_symlink, delete_directory, remove_symlink};
+use crate::modules::file_operations::{copy_directory, create_symlink, delete_directory, is_path_inside, remove_symlink};
 use crate::types::{Agent, PendingChange, SyncResult};
 use std::path::Path;
 
@@ -12,6 +12,8 @@ pub enum SyncError {
     AgentNotFound(String),
     #[error("Skill not found: {0}")]
     SkillNotFound(String),
+    #[error("Path traversal detected: path is outside allowed directory")]
+    PathTraversal,
 }
 
 pub type Result<T> = std::result::Result<T, SyncError>;
@@ -27,6 +29,14 @@ impl SyncEngine {
     pub fn sync_to_hub(&self, skill_name: &str, source_agent: &Agent, hub_path: &str) -> Result<SyncResult> {
         let source = Path::new(&source_agent.skills_path).join(skill_name);
         let dest = Path::new(hub_path).join(skill_name);
+        
+        // Validate paths to prevent directory traversal
+        if !is_path_inside(&source, Path::new(&source_agent.skills_path)) {
+            return Err(SyncError::PathTraversal);
+        }
+        if !is_path_inside(&dest, Path::new(hub_path)) {
+            return Err(SyncError::PathTraversal);
+        }
         
         if !source.exists() {
             return Err(SyncError::SkillNotFound(skill_name.to_string()));
@@ -52,6 +62,14 @@ impl SyncEngine {
     pub fn sync_to_agent(&self, skill_name: &str, agent: &Agent, hub_path: &str) -> Result<SyncResult> {
         let source = Path::new(hub_path).join(skill_name);
         let link = Path::new(&agent.skills_path).join(skill_name);
+        
+        // Validate paths to prevent directory traversal
+        if !is_path_inside(&source, Path::new(hub_path)) {
+            return Err(SyncError::PathTraversal);
+        }
+        if !is_path_inside(&link, Path::new(&agent.skills_path)) {
+            return Err(SyncError::PathTraversal);
+        }
         
         if !source.exists() {
             return Err(SyncError::SkillNotFound(skill_name.to_string()));
@@ -150,6 +168,12 @@ impl SyncEngine {
             DeleteScope::Local { agent_id } => {
                 if let Some(agent) = agents.iter().find(|a| a.id == agent_id) {
                     let path = Path::new(&agent.skills_path).join(skill_name);
+                    
+                    // Validate path to prevent directory traversal
+                    if !is_path_inside(&path, Path::new(&agent.skills_path)) {
+                        return Err(SyncError::PathTraversal);
+                    }
+                    
                     if path.is_symlink() {
                         remove_symlink(&path)?;
                     } else if path.exists() {
@@ -165,6 +189,12 @@ impl SyncEngine {
                 // Remove from all agents
                 for agent in agents {
                     let path = Path::new(&agent.skills_path).join(skill_name);
+                    
+                    // Validate path to prevent directory traversal
+                    if !is_path_inside(&path, Path::new(&agent.skills_path)) {
+                        continue; // Skip invalid paths
+                    }
+                    
                     if path.is_symlink() {
                         let _ = remove_symlink(&path);
                     } else if path.exists() {
@@ -173,9 +203,14 @@ impl SyncEngine {
                 }
                 // Remove from hub
                 let hub_skill = Path::new(hub_path).join(skill_name);
-                if hub_skill.exists() {
-                    delete_directory(&hub_skill)?;
+                
+                // Validate path to prevent directory traversal
+                if is_path_inside(&hub_skill, Path::new(hub_path)) {
+                    if hub_skill.exists() {
+                        delete_directory(&hub_skill)?;
+                    }
                 }
+                
                 Ok(SyncResult {
                     success: true,
                     message: format!("Skill '{}' deleted globally", skill_name),

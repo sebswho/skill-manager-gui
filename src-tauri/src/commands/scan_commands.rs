@@ -2,6 +2,19 @@ use crate::modules::{AgentDiscovery, SkillsScanner};
 use crate::types::{Agent, ScanResult};
 use tauri::command;
 
+/// Sanitize error message to prevent leaking sensitive path information
+fn sanitize_error(error: impl ToString) -> String {
+    let msg = error.to_string();
+    
+    // Replace home directory with ~ to reduce information leakage
+    if let Ok(home) = std::env::var("HOME") {
+        let msg = msg.replace(&home, "~");
+        return msg;
+    }
+    
+    msg
+}
+
 #[command]
 pub fn discover_agents() -> Vec<Agent> {
     let discovery = AgentDiscovery::new();

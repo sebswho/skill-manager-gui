@@ -1,4 +1,4 @@
-use crate::modules::file_operations::{calculate_directory_hash, get_symlink_target, is_symlink};
+use crate::modules::file_operations::{calculate_directory_hash, get_symlink_target, is_path_inside, is_symlink};
 use crate::types::{Agent, AgentSkillStatus, Conflict, PendingChange, ScanResult, Skill, SyncStatus};
 use std::collections::HashMap;
 use std::fs;
@@ -60,7 +60,8 @@ impl SkillsScanner {
         let agent_path = Path::new(&agent.skills_path);
         let hub = Path::new(hub_path);
         
-        if !agent_path.exists() {
+        // Validate that agent path exists and is a directory
+        if !agent_path.exists() || !agent_path.is_dir() {
             return statuses;
         }
         
@@ -133,11 +134,17 @@ impl SkillsScanner {
                 }
                 
                 // Track for conflict detection
-                if let Ok(hash) = calculate_directory_hash(Path::new(&format!("{}/{}", agent.skills_path, status.skill_name))) {
-                    skill_hashes
-                        .entry(status.skill_name.clone())
-                        .or_default()
-                        .push((agent.id.clone(), hash));
+                let agent_path = Path::new(&agent.skills_path);
+                let skill_path = agent_path.join(&status.skill_name);
+                
+                // Validate path before calculating hash
+                if is_path_inside(&skill_path, agent_path) && skill_path.exists() {
+                    if let Ok(hash) = calculate_directory_hash(&skill_path) {
+                        skill_hashes
+                            .entry(status.skill_name.clone())
+                            .or_default()
+                            .push((agent.id.clone(), hash));
+                    }
                 }
             }
             
