@@ -15,7 +15,7 @@
  * along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,15 @@ import { useConfig } from "@/hooks/useConfig";
 export function HubPathSection() {
   const { config } = useAppStore();
   const { updateCentralHubPath } = useConfig();
-  const [path, setPath] = useState(config?.central_hub_path || "");
+  const [path, setPath] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Update path when config is loaded
+  useEffect(() => {
+    if (config?.central_hub_path) {
+      setPath(config.central_hub_path);
+    }
+  }, [config?.central_hub_path]);
 
   const handleSave = async () => {
     if (!path.trim()) return;

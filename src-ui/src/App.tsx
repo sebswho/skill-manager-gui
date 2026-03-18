@@ -59,9 +59,10 @@ function App() {
 
   useEffect(() => {
     if (config) {
+      // Scan all skills from hub and agents
       scanAll();
     }
-  }, [config?.agents.length]);
+  }, [config]);
 
   return (
     <MainLayout>

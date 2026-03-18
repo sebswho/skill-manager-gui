@@ -14,7 +14,7 @@
 // along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::modules::file_operations::{calculate_directory_hash, get_symlink_target, is_path_inside, is_symlink};
-use crate::types::{Agent, AgentSkillStatus, Conflict, PendingChange, ScanResult, Skill, SyncStatus};
+use crate::types::{Agent, AgentSkillStatus, Conflict, PendingChange, ScanResult, Skill, SkillVersion, SyncStatus};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -198,6 +198,43 @@ impl SkillsScanner {
             .filter_map(|e| e.metadata().ok())
             .map(|m| m.len())
             .sum()
+    }
+    
+    /// Get detailed version information for a skill across all agents
+    pub fn get_skill_versions(&self, skill_name: &str, agents: &[Agent], hub_path: &str) -> Vec<SkillVersion> {
+        let mut versions = Vec::new();
+        
+        for agent in agents {
+            let agent_path = Path::new(&agent.skills_path);
+            let skill_path = agent_path.join(skill_name);
+            
+            // Check if skill exists in this agent
+            if skill_path.exists() {
+                let size = Self::calculate_dir_size(&skill_path);
+                
+                let modified = fs::metadata(&skill_path)
+                    .ok()
+                    .and_then(|m| m.modified().ok())
+                    .map(|t| {
+                        let datetime: chrono::DateTime<chrono::Local> = t.into();
+                        datetime.to_rfc3339()
+                    })
+                    .unwrap_or_default();
+                
+                let hash = calculate_directory_hash(&skill_path).unwrap_or_default();
+                
+                versions.push(SkillVersion {
+                    agent_id: agent.id.clone(),
+                    agent_name: agent.name.clone(),
+                    size,
+                    modified_at: modified,
+                    path: skill_path.to_string_lossy().to_string(),
+                    hash,
+                });
+            }
+        }
+        
+        versions
     }
 }
 
