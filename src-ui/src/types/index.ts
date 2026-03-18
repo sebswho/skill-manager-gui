@@ -23,11 +23,16 @@ export interface AgentSkillStatus {
   target_path?: string;
 }
 
+export type Theme = 'light' | 'dark';
+export type Locale = 'zh-CN' | 'en';
+
 export interface AppConfig {
   central_hub_path: string;
   agents: Agent[];
   window_width: number;
   window_height: number;
+  theme?: Theme;
+  locale?: Locale;
 }
 
 export interface SyncMatrix {

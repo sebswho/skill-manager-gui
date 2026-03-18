@@ -6,7 +6,7 @@ mod types;
 
 use commands::config_commands::{
     add_agent, export_config, import_config, load_config, remove_agent, save_config,
-    update_central_hub_path, AppState,
+    update_central_hub_path, update_locale, update_theme, AppState,
 };
 use commands::dialog_commands::{
     pick_directory, pick_directory_with_default,
@@ -38,6 +38,8 @@ fn main() {
             add_agent,
             remove_agent,
             update_central_hub_path,
+            update_theme,
+            update_locale,
             // Dialog commands
             pick_directory,
             pick_directory_with_default,

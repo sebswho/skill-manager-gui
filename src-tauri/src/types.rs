@@ -42,6 +42,8 @@ pub struct AppConfig {
     pub agents: Vec<Agent>,
     pub window_width: u32,
     pub window_height: u32,
+    pub theme: Option<String>,
+    pub locale: Option<String>,
 }
 
 impl Default for AppConfig {
@@ -55,6 +57,8 @@ impl Default for AppConfig {
             agents: vec![],
             window_width: 1200,
             window_height: 800,
+            theme: Some("light".to_string()),
+            locale: Some("zh-CN".to_string()),
         }
     }
 }

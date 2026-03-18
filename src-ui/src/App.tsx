@@ -15,7 +15,16 @@ function App() {
   const { loadConfig } = useConfig();
   const { discoverAgents } = useAgents();
   const { scanAll } = useSkills();
-  const { config } = useAppStore();
+  const { config, theme } = useAppStore();
+
+  // Apply theme class when theme changes
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   useEffect(() => {
     const init = async () => {

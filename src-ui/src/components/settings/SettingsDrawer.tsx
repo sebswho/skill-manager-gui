@@ -7,6 +7,8 @@ import {
 import { useAppStore } from "@/stores/appStore";
 import { HubPathSection } from "./HubPathSection";
 import { AgentsSection } from "./AgentsSection";
+import { ThemeSection } from "./ThemeSection";
+import { LanguageSelector } from "./LanguageSelector";
 
 export function SettingsDrawer() {
   const { isSettingsOpen, setIsSettingsOpen } = useAppStore();
@@ -18,6 +20,8 @@ export function SettingsDrawer() {
           <SheetTitle>Settings</SheetTitle>
         </SheetHeader>
         <div className="py-6 space-y-6">
+          <ThemeSection />
+          <LanguageSelector />
           <HubPathSection />
           <AgentsSection />
         </div>

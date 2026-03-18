@@ -90,3 +90,25 @@ pub fn update_central_hub_path(path: String, state: State<AppState>) -> Result<A
         .update_central_hub_path(path)
         .map_err(sanitize_error)
 }
+
+#[tauri::command]
+pub fn update_theme(theme: String, state: State<AppState>) -> Result<AppConfig, String> {
+    state
+        .config_manager
+        .lock()
+        .unwrap()
+        .update_theme(theme)
+        .map_err(sanitize_error)
+}
+
+#[tauri::command]
+pub fn update_locale(locale: String, state: State<AppState>) -> Result<AppConfig, String> {
+    state
+        .config_manager
+        .lock()
+        .unwrap()
+        .update_locale(locale)
+        .map_err(sanitize_error)
+}
+
+
