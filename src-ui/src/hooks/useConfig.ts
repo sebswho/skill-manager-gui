@@ -1,15 +1,22 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '@/stores/appStore';
-import type { Agent, AppConfig } from '@/types';
+import type { Agent, AppConfig, Theme, Locale } from '@/types';
 
 export function useConfig() {
-  const { config, setConfig, setAgents } = useAppStore();
+  const { config, setConfig, setAgents, setTheme, setLocale } = useAppStore();
 
   const loadConfig = async () => {
     try {
       const loaded = await invoke<AppConfig>('load_config');
       setConfig(loaded);
       setAgents(loaded.agents);
+      // Load theme and locale if saved
+      if (loaded.theme) {
+        setTheme(loaded.theme);
+      }
+      if (loaded.locale) {
+        setLocale(loaded.locale);
+      }
       return loaded;
     } catch (error) {
       console.error('Failed to load config:', error);
@@ -83,6 +90,30 @@ export function useConfig() {
     }
   };
 
+  const updateTheme = async (theme: Theme) => {
+    try {
+      const updated = await invoke<AppConfig>('update_theme', { theme });
+      setConfig(updated);
+      setTheme(theme);
+      return updated;
+    } catch (error) {
+      console.error('Failed to update theme:', error);
+      throw error;
+    }
+  };
+
+  const updateLocale = async (locale: Locale) => {
+    try {
+      const updated = await invoke<AppConfig>('update_locale', { locale });
+      setConfig(updated);
+      setLocale(locale);
+      return updated;
+    } catch (error) {
+      console.error('Failed to update locale:', error);
+      throw error;
+    }
+  };
+
   return {
     config,
     loadConfig,
@@ -92,5 +123,7 @@ export function useConfig() {
     addAgent,
     removeAgent,
     updateCentralHubPath,
+    updateTheme,
+    updateLocale,
   };
 }

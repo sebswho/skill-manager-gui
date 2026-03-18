@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Settings } from 'lucide-react';
 import { useSkills } from '@/hooks/useSkills';
 import { useAppStore } from '@/stores/appStore';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export function Header() {
   const { scanAll } = useSkills();
@@ -19,6 +20,7 @@ export function Header() {
       </div>
       
       <div className="flex items-center gap-2">
+        <ThemeToggle variant="outline" size="icon" />
         <Button
           variant="outline"
           size="sm"

@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2024 sebswho
+ * This file is part of Agent Skills Manager.
+ * Agent Skills Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Agent Skills Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import {
   Sheet,
   SheetContent,
@@ -7,6 +24,8 @@ import {
 import { useAppStore } from "@/stores/appStore";
 import { HubPathSection } from "./HubPathSection";
 import { AgentsSection } from "./AgentsSection";
+import { ThemeSection } from "./ThemeSection";
+import { LanguageSelector } from "./LanguageSelector";
 
 export function SettingsDrawer() {
   const { isSettingsOpen, setIsSettingsOpen } = useAppStore();
@@ -18,6 +37,8 @@ export function SettingsDrawer() {
           <SheetTitle>Settings</SheetTitle>
         </SheetHeader>
         <div className="py-6 space-y-6">
+          <ThemeSection />
+          <LanguageSelector />
           <HubPathSection />
           <AgentsSection />
         </div>

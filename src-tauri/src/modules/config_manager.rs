@@ -1,3 +1,18 @@
+// Copyright (C) 2024 sebswho
+// This file is part of Agent Skills Manager.
+// Agent Skills Manager is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Agent Skills Manager is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
+
 use crate::types::{Agent, AppConfig};
 use serde_json;
 use std::fs;
@@ -83,6 +98,20 @@ impl ConfigManager {
     pub fn update_central_hub_path(&self, path: String) -> Result<AppConfig> {
         let mut config = self.load()?;
         config.central_hub_path = path;
+        self.save(&config)?;
+        Ok(config)
+    }
+    
+    pub fn update_theme(&self, theme: String) -> Result<AppConfig> {
+        let mut config = self.load()?;
+        config.theme = Some(theme);
+        self.save(&config)?;
+        Ok(config)
+    }
+    
+    pub fn update_locale(&self, locale: String) -> Result<AppConfig> {
+        let mut config = self.load()?;
+        config.locale = Some(locale);
         self.save(&config)?;
         Ok(config)
     }
@@ -257,5 +286,67 @@ mod tests {
         // Import
         let imported = manager.import(&export_path).unwrap();
         assert_eq!(imported.central_hub_path, "/export/test");
+    }
+
+    #[test]
+    fn test_update_theme() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Update theme to dark
+        let config = manager.update_theme("dark".to_string()).unwrap();
+        assert_eq!(config.theme, Some("dark".to_string()));
+        
+        // Verify it was saved
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.theme, Some("dark".to_string()));
+    }
+
+    #[test]
+    fn test_update_locale() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Update locale to English
+        let config = manager.update_locale("en".to_string()).unwrap();
+        assert_eq!(config.locale, Some("en".to_string()));
+        
+        // Verify it was saved
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.locale, Some("en".to_string()));
+    }
+
+    #[test]
+    fn test_theme_and_locale_integration() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Set both theme and locale
+        manager.update_theme("dark".to_string()).unwrap();
+        manager.update_locale("en".to_string()).unwrap();
+        
+        // Verify both persisted together
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.theme, Some("dark".to_string()));
+        assert_eq!(loaded.locale, Some("en".to_string()));
+    }
+
+    #[test]
+    fn test_default_theme_and_locale() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.json");
+        
+        let manager = ConfigManager::with_path(config_path.clone());
+        
+        // Load default config
+        let loaded = manager.load().unwrap();
+        assert_eq!(loaded.theme, Some("light".to_string()));
+        assert_eq!(loaded.locale, Some("zh-CN".to_string()));
     }
 }

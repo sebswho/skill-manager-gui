@@ -166,4 +166,4 @@ The current release is an MVP focused on core sync functionality. Planned future
 
 ## License
 
-[MIT](./LICENSE)
+[GNU Lesser General Public License v3.0 (LGPL-3.0)](./LICENSE)

@@ -2,6 +2,7 @@
 name = "agent-skills-manager"
 version = "0.1.0"
 edition = "2021"
+license = "LGPL-3.0"
 
 [dependencies]
 tauri = { version = "2.0", features = [] }
