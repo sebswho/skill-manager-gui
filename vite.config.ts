@@ -7,7 +7,7 @@ export default defineConfig(async () => ({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "./src-ui/src"),
     },
   },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
@@ -16,7 +16,7 @@ export default defineConfig(async () => ({
   clearScreen: false,
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
-    port: 5173,
+    port: 1420,
     strictPort: true,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
