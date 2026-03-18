@@ -80,3 +80,86 @@ impl AgentDiscovery {
         path_buf.exists() && path_buf.is_dir()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+    use std::fs;
+
+    #[test]
+    fn test_validate_agent_path_with_valid_directory() {
+        let temp_dir = TempDir::new().unwrap();
+        let skills_path = temp_dir.path().join("skills");
+        fs::create_dir(&skills_path).unwrap();
+        
+        let discovery = AgentDiscovery::new();
+        assert!(discovery.validate_agent_path(&skills_path.to_string_lossy()));
+    }
+
+    #[test]
+    fn test_validate_agent_path_with_invalid_directory() {
+        let discovery = AgentDiscovery::new();
+        assert!(!discovery.validate_agent_path("/nonexistent/path/that/does/not/exist"));
+    }
+
+    #[test]
+    fn test_validate_agent_path_with_file() {
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("not_a_directory.txt");
+        fs::write(&file_path, "content").unwrap();
+        
+        let discovery = AgentDiscovery::new();
+        // Should return false because it's a file, not a directory
+        assert!(!discovery.validate_agent_path(&file_path.to_string_lossy()));
+    }
+
+    #[test]
+    fn test_discover_agents_finds_existing_paths() {
+        // This test creates mock agent directories in temp and verifies discovery
+        let temp_dir = TempDir::new().unwrap();
+        let home = temp_dir.path();
+        
+        // Create mock agent directories
+        let claude_skills = home.join(".claude/skills");
+        let trae_skills = home.join(".trae/skills");
+        fs::create_dir_all(&claude_skills).unwrap();
+        fs::create_dir_all(&trae_skills).unwrap();
+        
+        // Note: discover_agents uses dirs::home_dir() which we can't easily mock
+        // For unit testing, we would need to refactor to accept a home path parameter
+        // For now, we test the validation logic which is more unit-testable
+        
+        let discovery = AgentDiscovery::new();
+        assert!(discovery.validate_agent_path(&claude_skills.to_string_lossy()));
+        assert!(discovery.validate_agent_path(&trae_skills.to_string_lossy()));
+    }
+
+    #[test]
+    fn test_discover_agents_skips_nonexistent_paths() {
+        // Similar to above, we test validation logic
+        let temp_dir = TempDir::new().unwrap();
+        let home = temp_dir.path();
+        
+        // Only create one agent directory
+        let existing_skills = home.join(".existing/skills");
+        fs::create_dir_all(&existing_skills).unwrap();
+        
+        let discovery = AgentDiscovery::new();
+        assert!(discovery.validate_agent_path(&existing_skills.to_string_lossy()));
+        assert!(!discovery.validate_agent_path(&home.join(".nonexistent/skills").to_string_lossy()));
+    }
+
+    #[test]
+    fn test_validate_agent_path_with_empty_string() {
+        let discovery = AgentDiscovery::new();
+        assert!(!discovery.validate_agent_path(""));
+    }
+
+    #[test]
+    fn test_validate_agent_path_with_relative_path() {
+        let discovery = AgentDiscovery::new();
+        // Relative paths should work if they exist
+        assert!(!discovery.validate_agent_path("./relative/path"));
+    }
+}

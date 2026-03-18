@@ -4,6 +4,19 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::State;
 
+/// Sanitize error message to prevent leaking sensitive path information
+fn sanitize_error(error: impl ToString) -> String {
+    let msg = error.to_string();
+    
+    // Replace home directory with ~ to reduce information leakage
+    if let Ok(home) = std::env::var("HOME") {
+        let msg = msg.replace(&home, "~");
+        return msg;
+    }
+    
+    msg
+}
+
 pub struct AppState {
     pub config_manager: Mutex<ConfigManager>,
 }
@@ -15,7 +28,7 @@ pub fn load_config(state: State<AppState>) -> Result<AppConfig, String> {
         .lock()
         .unwrap()
         .load()
-        .map_err(|e| e.to_string())
+        .map_err(sanitize_error)
 }
 
 #[tauri::command]
@@ -25,7 +38,7 @@ pub fn save_config(config: AppConfig, state: State<AppState>) -> Result<(), Stri
         .lock()
         .unwrap()
         .save(&config)
-        .map_err(|e| e.to_string())
+        .map_err(sanitize_error)
 }
 
 #[tauri::command]
@@ -35,7 +48,7 @@ pub fn export_config(path: String, state: State<AppState>) -> Result<(), String>
         .lock()
         .unwrap()
         .export(&PathBuf::from(path))
-        .map_err(|e| e.to_string())
+        .map_err(sanitize_error)
 }
 
 #[tauri::command]
@@ -45,7 +58,7 @@ pub fn import_config(path: String, state: State<AppState>) -> Result<AppConfig, 
         .lock()
         .unwrap()
         .import(&PathBuf::from(path))
-        .map_err(|e| e.to_string())
+        .map_err(sanitize_error)
 }
 
 #[tauri::command]
@@ -55,7 +68,7 @@ pub fn add_agent(agent: Agent, state: State<AppState>) -> Result<AppConfig, Stri
         .lock()
         .unwrap()
         .add_agent(agent)
-        .map_err(|e| e.to_string())
+        .map_err(sanitize_error)
 }
 
 #[tauri::command]
@@ -65,7 +78,7 @@ pub fn remove_agent(agent_id: String, state: State<AppState>) -> Result<AppConfi
         .lock()
         .unwrap()
         .remove_agent(&agent_id)
-        .map_err(|e| e.to_string())
+        .map_err(sanitize_error)
 }
 
 #[tauri::command]
@@ -75,5 +88,5 @@ pub fn update_central_hub_path(path: String, state: State<AppState>) -> Result<A
         .lock()
         .unwrap()
         .update_central_hub_path(path)
-        .map_err(|e| e.to_string())
+        .map_err(sanitize_error)
 }

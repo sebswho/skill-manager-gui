@@ -27,9 +27,19 @@ interface AppState {
   conflicts: Conflict[];
   setConflicts: (conflicts: Conflict[]) => void;
   
+  // Conflict Resolution
+  selectedConflict: Conflict | null;
+  setSelectedConflict: (conflict: Conflict | null) => void;
+  resolvedConflicts: Set<string>;
+  markConflictResolved: (skillName: string) => void;
+  
   // Loading State
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  
+  // Settings UI State
+  isSettingsOpen: boolean;
+  setIsSettingsOpen: (open: boolean) => void;
   
   // Selection
   selectedSkills: Set<string>;
@@ -82,9 +92,21 @@ export const useAppStore = create<AppState>((set) => ({
   conflicts: [],
   setConflicts: (conflicts) => set({ conflicts }),
   
+  // Conflict Resolution
+  selectedConflict: null,
+  setSelectedConflict: (selectedConflict) => set({ selectedConflict }),
+  resolvedConflicts: new Set(),
+  markConflictResolved: (skillName) => set((state) => ({
+    resolvedConflicts: new Set([...state.resolvedConflicts, skillName]),
+  })),
+  
   // Loading State
   isLoading: false,
   setIsLoading: (isLoading) => set({ isLoading }),
+  
+  // Settings UI State
+  isSettingsOpen: false,
+  setIsSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
   
   // Selection
   selectedSkills: new Set(),

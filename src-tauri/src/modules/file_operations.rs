@@ -1,7 +1,7 @@
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::io::{self, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 #[derive(Debug, thiserror::Error)]
@@ -123,14 +123,44 @@ pub fn calculate_directory_hash(path: &Path) -> Result<String> {
 }
 
 /// Check if path is inside another path (prevents escaping)
+/// Works for both existing and non-existing paths
+/// IMPORTANT: This checks the literal path location, NOT where a symlink points to
 pub fn is_path_inside(child: &Path, parent: &Path) -> bool {
-    match child.canonicalize() {
-        Ok(child_canon) => match parent.canonicalize() {
-            Ok(parent_canon) => child_canon.starts_with(&parent_canon),
-            Err(_) => false,
+    // Always use normalized paths for comparison
+    // This prevents traversal attacks without resolving symlinks
+    // (we want to check if the symlink is located in the parent, not where it points)
+    match normalize_path(child) {
+        Some(child_norm) => match normalize_path(parent) {
+            Some(parent_norm) => child_norm.starts_with(&parent_norm),
+            None => false,
         },
-        Err(_) => false,
+        None => false,
     }
+}
+
+/// Normalize a path without requiring it to exist
+/// Resolves . and .. components, and checks for traversal sequences
+fn normalize_path(path: &Path) -> Option<PathBuf> {
+    let mut normalized = PathBuf::new();
+    
+    for component in path.components() {
+        match component {
+            std::path::Component::Prefix(_) => normalized.push(component),
+            std::path::Component::RootDir => normalized.push(component),
+            std::path::Component::CurDir => {}, // Skip .
+            std::path::Component::ParentDir => {
+                // Check if we would escape the root
+                if !normalized.pop() {
+                    return None; // Attempted to go above root
+                }
+            }
+            std::path::Component::Normal(name) => {
+                normalized.push(name);
+            }
+        }
+    }
+    
+    Some(normalized)
 }
 
 #[cfg(test)]
