@@ -56,7 +56,7 @@ export function SkillDetailPanel() {
   }
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div data-testid="skill-detail-panel" className="h-full flex flex-col p-6">
       <SkillHeader skill={skill} />
       <div className="flex-1 flex flex-col min-h-0 mt-6">
         <AgentCardGrid skillName={skill.name} />

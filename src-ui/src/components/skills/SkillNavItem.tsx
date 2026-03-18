@@ -28,6 +28,7 @@ interface SkillNavItemProps {
 export function SkillNavItem({ name, isSelected, status, onClick }: SkillNavItemProps) {
   return (
     <button
+      data-testid="skill-nav-item"
       onClick={onClick}
       className={cn(
         'w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-150',

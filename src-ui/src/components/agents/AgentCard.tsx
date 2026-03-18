@@ -43,6 +43,7 @@ export function AgentCard({ agent, isInstalled, isSelected, onToggle }: AgentCar
 
   return (
     <button
+      data-testid="agent-card"
       onClick={onToggle}
       className={cn(
         'relative w-full p-3 rounded-lg border text-left transition-all duration-150',
