@@ -19,8 +19,16 @@ function App() {
 
   useEffect(() => {
     const init = async () => {
+      // First load config to get any previously saved agents
       await loadConfig();
+      
+      // Then discover agents and persist any new ones
+      // This ensures auto-discovered agents are saved to config
+      // and won't be lost when adding custom agents later
       await discoverAgents();
+      
+      // Reload config to ensure store has the complete list
+      await loadConfig();
     };
     init();
   }, []);

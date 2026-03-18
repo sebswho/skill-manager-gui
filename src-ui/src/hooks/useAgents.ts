@@ -1,9 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '@/stores/appStore';
+import { useConfig } from './useConfig';
 import type { Agent } from '@/types';
 
 export function useAgents() {
-  const { agents, setAgents } = useAppStore();
+  const { agents } = useAppStore();
+  const { addAgent } = useConfig();
 
   const discoverAgents = async () => {
     try {
@@ -12,8 +14,12 @@ export function useAgents() {
       const newAgents = discovered.filter(a => !existingIds.has(a.id));
       
       if (newAgents.length > 0) {
-        const merged = [...agents, ...newAgents];
-        setAgents(merged);
+        // Persist each newly discovered agent to config
+        // This prevents them from being lost when adding custom agents later
+        // Note: addAgent will update the store, so we don't need setAgents here
+        for (const agent of newAgents) {
+          await addAgent(agent);
+        }
       }
       
       return discovered;
