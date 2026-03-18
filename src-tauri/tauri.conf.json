@@ -8,7 +8,7 @@
   "bundle": {
     "active": true,
     "category": "DeveloperTool",
-    "copyright": "",
+    "copyright": "2025 Agent Skills Manager",
     "targets": ["app", "dmg", "appimage", "deb", "msi"],
     "externalBin": [],
     "icon": [
@@ -23,7 +23,7 @@
       "digestAlgorithm": "sha256",
       "timestampUrl": ""
     },
-    "longDescription": "",
+    "longDescription": "A unified GUI for managing AI Agent Skills across multiple agents with symlink-based synchronization.",
     "macOS": {
       "entitlements": null,
       "exceptionDomain": "",
@@ -32,7 +32,7 @@
       "signingIdentity": null
     },
     "resources": [],
-    "shortDescription": "",
+    "shortDescription": "Manage Agent Skills",
     "linux": {
       "deb": {
         "depends": []
@@ -51,9 +51,11 @@
       {
         "fullscreen": false,
         "height": 800,
+        "minHeight": 600,
         "resizable": true,
         "title": "Agent Skills Manager",
         "width": 1200,
+        "minWidth": 900,
         "center": true
       }
     ]
