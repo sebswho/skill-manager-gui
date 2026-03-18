@@ -66,7 +66,7 @@ interface AppState {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   
-  // Selection
+  // Selection (legacy batch mode)
   selectedSkills: Set<string>;
   setSelectedSkills: (skills: Set<string>) => void;
   toggleSkillSelection: (skillName: string) => void;
@@ -74,9 +74,19 @@ interface AppState {
   setSelectedAgents: (agents: Set<string>) => void;
   toggleAgentSelection: (agentId: string) => void;
   
+  // New: Select-and-Show mode
+  selectedSkillId: string | null;
+  setSelectedSkillId: (skillId: string | null) => void;
+  selectedAgentsForSync: Set<string>; // Agents selected for current skill sync
+  setSelectedAgentsForSync: (agents: Set<string>) => void;
+  toggleAgentForSync: (agentId: string) => void;
+  selectAllAgentsForSync: (agentIds: string[]) => void;
+  deselectAllAgentsForSync: () => void;
+  
   // Actions
   resetSelection: () => void;
   clearPendingChanges: () => void;
+  resetSkillSelection: () => void; // Reset when switching skills
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -141,7 +151,7 @@ export const useAppStore = create<AppState>((set) => ({
   locale: 'zh-CN',
   setLocale: (locale) => set({ locale }),
   
-  // Selection
+  // Selection (legacy batch mode)
   selectedSkills: new Set(),
   setSelectedSkills: (selectedSkills) => set({ selectedSkills }),
   toggleSkillSelection: (skillName) => set((state) => {
@@ -165,7 +175,25 @@ export const useAppStore = create<AppState>((set) => ({
     return { selectedAgents: newSet };
   }),
   
+  // New: Select-and-Show mode
+  selectedSkillId: null,
+  setSelectedSkillId: (selectedSkillId) => set({ selectedSkillId }),
+  selectedAgentsForSync: new Set(),
+  setSelectedAgentsForSync: (selectedAgentsForSync) => set({ selectedAgentsForSync }),
+  toggleAgentForSync: (agentId) => set((state) => {
+    const newSet = new Set(state.selectedAgentsForSync);
+    if (newSet.has(agentId)) {
+      newSet.delete(agentId);
+    } else {
+      newSet.add(agentId);
+    }
+    return { selectedAgentsForSync: newSet };
+  }),
+  selectAllAgentsForSync: (agentIds) => set({ selectedAgentsForSync: new Set(agentIds) }),
+  deselectAllAgentsForSync: () => set({ selectedAgentsForSync: new Set() }),
+  
   // Actions
   resetSelection: () => set({ selectedSkills: new Set(), selectedAgents: new Set() }),
   clearPendingChanges: () => set({ pendingChanges: [] }),
+  resetSkillSelection: () => set({ selectedSkillId: null, selectedAgentsForSync: new Set() }),
 }));

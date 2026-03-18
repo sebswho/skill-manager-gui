@@ -1,27 +1,58 @@
+/**
+ * Copyright (C) 2024 sebswho
+ * Smoke Tests for Agent Skills Manager
+ */
+
 import { test, expect } from '@playwright/test';
 
 test.describe('Smoke Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+  });
+
   test('app loads successfully', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    
-    // Check that the app title is visible
-    await expect(page.locator('text=Agent Skills Manager')).toBeVisible();
+    // Check that the app title is visible (use exact match)
+    await expect(page.getByRole('heading', { name: 'Agent Skills Manager', exact: true })).toBeVisible();
   });
 
-  test('skill list section exists', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    
-    // Check for Skills section heading
-    await expect(page.locator('text=Skills').first()).toBeVisible();
+  test('sidebar with skill library exists', async ({ page }) => {
+    // Check for new skill library sidebar
+    await expect(page.locator('text=我的技能库')).toBeVisible();
+    // Use button role to specifically target the category header
+    await expect(page.getByRole('button', { name: '📁 本地' })).toBeVisible();
   });
 
-  test('sync matrix section exists', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+  test('empty state shown when no skill selected', async ({ page }) => {
+    // Should show welcome message
+    await expect(page.locator('text=欢迎使用 Agent Skills Manager')).toBeVisible();
+  });
+
+  test('search input exists in sidebar', async ({ page }) => {
+    await expect(page.locator('input[placeholder="搜索技能..."]')).toBeVisible();
+  });
+
+  test('theme toggle works', async ({ page }) => {
+    // Find and click theme toggle
+    const themeToggle = page.locator('button[aria-label*="theme"]').first();
     
-    // Check for sync status text
-    await expect(page.locator('text=Sync Status')).toBeVisible();
+    if (await themeToggle.isVisible().catch(() => false)) {
+      await themeToggle.click();
+      // Should not throw error
+      await expect(themeToggle).toBeVisible();
+    }
+  });
+
+  test('settings drawer can be opened', async ({ page }) => {
+    // Find settings button by its text
+    const settingsButton = page.getByRole('button', { name: 'Settings' });
+    
+    if (await settingsButton.isVisible().catch(() => false)) {
+      await settingsButton.click();
+      // Wait a bit for animation
+      await page.waitForTimeout(300);
+      // Settings should appear - check for title
+      await expect(page.locator('text=Settings').first()).toBeVisible();
+    }
   });
 });

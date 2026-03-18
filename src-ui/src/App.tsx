@@ -17,11 +17,9 @@
 
 import { useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { SkillList } from '@/components/skills/SkillList';
-import { SyncMatrix } from '@/components/sync/SyncMatrix';
-import { SyncActions } from '@/components/sync/SyncActions';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { SkillDetailPanel } from '@/components/skills/SkillDetailPanel';
 import { SettingsDrawer } from '@/components/settings/SettingsDrawer';
-import { ConflictList } from '@/components/conflicts/ConflictList';
 import { ConflictResolutionDialog } from '@/components/conflicts/ConflictResolutionDialog';
 import { useConfig } from '@/hooks/useConfig';
 import { useAgents } from '@/hooks/useAgents';
@@ -68,15 +66,9 @@ function App() {
   return (
     <MainLayout>
       <div className="flex h-full">
-        <div className="w-64 flex-shrink-0">
-          <SkillList />
-        </div>
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-hidden p-4">
-            <ConflictList />
-            <SyncMatrix />
-          </div>
-          <SyncActions />
+        <Sidebar />
+        <div className="flex-1 overflow-hidden">
+          <SkillDetailPanel />
         </div>
       </div>
       <SettingsDrawer />
