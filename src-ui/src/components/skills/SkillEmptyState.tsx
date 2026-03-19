@@ -17,8 +17,28 @@
 
 import { Button } from '@/components/ui/button';
 import { Target, BookOpen, Search } from 'lucide-react';
+import { useToast } from '@/hooks/useToast';
 
 export function SkillEmptyState() {
+  const { toast } = useToast();
+
+  const handleTutorial = () => {
+    toast({
+      title: "使用教程",
+      description: "1. 从左侧选择 Skill\n2. 在右侧勾选要同步的 Agent\n3. 点击'一键同步'完成部署",
+      duration: 10000,
+    });
+  };
+
+  const handleDiscover = () => {
+    // For now, show a toast. In the future, this could open Vercel Skills integration
+    toast({
+      title: "发现技能",
+      description: "Vercel Skills 集成功能即将上线。请暂时手动添加技能到 ~/.agents/skills/",
+      duration: 5000,
+    });
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-8">
       <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mb-6">
@@ -31,11 +51,11 @@ export function SkillEmptyState() {
       </p>
       
       <div className="flex gap-4">
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={handleTutorial}>
           <BookOpen className="w-4 h-4" />
           查看教程
         </Button>
-        <Button className="gap-2 bg-green-500 hover:bg-green-600">
+        <Button className="gap-2 bg-green-500 hover:bg-green-600" onClick={handleDiscover}>
           <Search className="w-4 h-4" />
           发现技能
         </Button>

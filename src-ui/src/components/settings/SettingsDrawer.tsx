@@ -32,7 +32,7 @@ export function SettingsDrawer() {
 
   return (
     <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-      <SheetContent data-testid="settings-drawer" className="w-[400px] sm:w-[540px]">
+      <SheetContent data-testid="settings-drawer" className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Settings</SheetTitle>
         </SheetHeader>

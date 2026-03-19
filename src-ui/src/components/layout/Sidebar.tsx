@@ -19,8 +19,8 @@ import { SkillLibrary } from '@/components/skills/SkillLibrary';
 
 export function Sidebar() {
   return (
-    <aside className="w-64 h-full bg-slate-800/50 border-r border-slate-700 flex flex-col">
-      <div className="p-4 border-b border-slate-700">
+    <aside className="w-64 h-full bg-muted/50 border-r border-border flex flex-col">
+      <div className="p-4 border-b border-border">
         <h2 className="font-mono font-semibold text-lg">📚 我的技能库</h2>
       </div>
       <div className="flex-1 overflow-hidden">
