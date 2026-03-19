@@ -16,8 +16,8 @@
 
 - **统一中心仓库** — 所有 Skill 集中存放在一个目录（默认 `~/.agents/skills/`），无冗余副本
 - **自动发现 Agent** — 自动扫描常见 Agent 的安装位置（Claude Code、CodeBuddy、Trae、iFlow、Codex）
-- **可视化同步矩阵** — Skills × Agents 网格视图，一眼看清每个 Skill 在各 Agent 的同步状态
-- **一键同步** — 单个 Skill 推送到指定 Agent，或批量全量同步
+- **选择即展示界面** — 从侧边栏选择 Skill，查看并管理该 Skill 在各 Agent 的同步状态
+- **一键同步** — 单个 Skill 推送到指定 Agent，按 Skill 管理同步状态
 - **冲突检测** — 自动检测同名 Skill 内容不一致的情况，由用户手动选择保留哪个版本
 - **软链接优先** — Agent 的 Skills 目录只存软链接，指向中心仓库，从根本上消除重复存储
 - **配置持久化** — Agent 列表、中心仓库路径、窗口状态自动保存，支持 JSON 导入/导出

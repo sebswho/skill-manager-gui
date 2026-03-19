@@ -16,8 +16,8 @@ If you use multiple AI agents (Claude Code, CodeBuddy, Trae, iFlow, Codex, etc.)
 
 - **Central Hub** — One canonical location (`~/.agents/skills/` by default) stores all your Skills
 - **Auto-Discovery** — Automatically detects installed agents (Claude Code, CodeBuddy, Trae, iFlow, Codex)
-- **Visual Sync Matrix** — A Skills × Agents grid shows sync status at a glance: synced, missing, conflict, or new
-- **One-Click Sync** — Push any Skill to any Agent with a single click; bulk sync everything at once
+- **Select-and-Show UI** — Select a skill from the sidebar to view and manage its sync status across agents
+- **One-Click Sync** — Push any Skill to any Agent with a single click; manage per-skill sync state
 - **Conflict Detection** — Detects when the same Skill name has different content across agents; lets you pick the winner
 - **Symlink-First** — Agent skill directories reference the hub via symlinks, eliminating duplicate storage
 - **Persistent Config** — Your agent list, hub path, and window state survive restarts; import/export as JSON

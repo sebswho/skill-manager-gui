@@ -14,7 +14,7 @@
 // along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::modules::{AgentDiscovery, SkillsScanner};
-use crate::types::{Agent, ScanResult};
+use crate::types::{Agent, ScanResult, SkillVersion};
 use tauri::command;
 
 /// Sanitize error message to prevent leaking sensitive path information
@@ -52,4 +52,14 @@ pub fn scan_all(agents: Vec<Agent>, hub_path: String) -> Result<ScanResult, Stri
 pub fn scan_central_hub(hub_path: String) -> Vec<crate::types::Skill> {
     let scanner = SkillsScanner::new();
     scanner.scan_central_hub(&hub_path)
+}
+
+#[command]
+pub fn get_skill_versions(
+    skill_name: String,
+    agents: Vec<Agent>,
+    hub_path: String,
+) -> Vec<SkillVersion> {
+    let scanner = SkillsScanner::new();
+    scanner.get_skill_versions(&skill_name, &agents, &hub_path)
 }
