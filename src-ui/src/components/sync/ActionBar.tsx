@@ -32,7 +32,7 @@ export function ActionBar({ skillName }: ActionBarProps) {
     agents,
     syncMatrix,
     selectedAgentsForSync,
-
+    config,
     updateSyncStatus,
   } = useAppStore();
   const { isSyncing, syncError, syncSuccess, setIsSyncing, setSyncError, setSyncSuccess, resetSyncState } = useSyncStore();
@@ -91,12 +91,16 @@ export function ActionBar({ skillName }: ActionBarProps) {
       }
 
       // Execute removal for each removal
-      for (const agentId of removals) {
-        await invoke('delete_skill_local', {
-          skillName,
-          agentId,
-        });
-        updateSyncStatus(skillName, agentId, 'missing');
+      if (config && removals.length > 0) {
+        for (const agentId of removals) {
+          await invoke('delete_skill_local', {
+            skillName,
+            agentId,
+            agents,
+            hubPath: config.central_hub_path,
+          });
+          updateSyncStatus(skillName, agentId, 'missing');
+        }
       }
 
       setSyncSuccess(true);
