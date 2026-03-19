@@ -27,7 +27,7 @@ use commands::dialog_commands::{
     pick_directory, pick_directory_with_default,
 };
 use commands::scan_commands::{
-    discover_agents, scan_all, scan_central_hub, validate_agent_path,
+    discover_agents, get_skill_versions, scan_all, scan_central_hub, validate_agent_path,
 };
 use commands::sync_commands::{
     batch_sync, delete_skill_global, delete_skill_local, execute_changes, sync_to_agent,
@@ -63,6 +63,7 @@ fn main() {
             validate_agent_path,
             scan_all,
             scan_central_hub,
+            get_skill_versions,
             // Sync commands
             sync_to_hub,
             sync_to_agent,

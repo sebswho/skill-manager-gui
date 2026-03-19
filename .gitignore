@@ -168,13 +168,6 @@ build/
 openspec/
 .openspec/
 
-# AI agent skill directories
-.agent/
-.agents/
-.claude/
-docs/
-.DS_Store
-
-# Internal development documents
+# Internal development documents (moved to private repo)
 docs/
 *.md.bak

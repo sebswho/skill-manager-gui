@@ -112,3 +112,13 @@ pub struct SyncResult {
     pub success: bool,
     pub message: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SkillVersion {
+    pub agent_id: String,
+    pub agent_name: String,
+    pub size: u64,
+    pub modified_at: String,
+    pub path: String,
+    pub hash: String,
+}

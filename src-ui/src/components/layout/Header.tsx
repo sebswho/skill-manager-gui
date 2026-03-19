@@ -1,12 +1,22 @@
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Settings } from 'lucide-react';
+import { RefreshCw, Settings, AlertTriangle } from 'lucide-react';
 import { useSkills } from '@/hooks/useSkills';
 import { useAppStore } from '@/stores/appStore';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export function Header() {
   const { scanAll } = useSkills();
-  const { isLoading, pendingChanges, setIsSettingsOpen } = useAppStore();
+  const { isLoading, pendingChanges, conflicts, resolvedConflicts, setIsSettingsOpen, setSelectedConflict } = useAppStore();
+  
+  // Filter out resolved conflicts
+  const unresolvedConflicts = conflicts.filter(c => !resolvedConflicts.has(c.skill_name));
+  const hasConflicts = unresolvedConflicts.length > 0;
+
+  const handleResolveConflicts = () => {
+    if (hasConflicts) {
+      setSelectedConflict(unresolvedConflicts[0]);
+    }
+  };
 
   return (
     <header className="border-b px-4 py-3 flex items-center justify-between bg-card">
@@ -20,6 +30,17 @@ export function Header() {
       </div>
       
       <div className="flex items-center gap-2">
+        {hasConflicts && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleResolveConflicts}
+            className="animate-pulse"
+          >
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            {unresolvedConflicts.length} 个冲突
+          </Button>
+        )}
         <ThemeToggle variant="outline" size="icon" />
         <Button
           variant="outline"

@@ -92,8 +92,10 @@ export function ActionBar({ skillName }: ActionBarProps) {
 
       // Execute removal for each removal
       for (const agentId of removals) {
-        // Note: You may need to add a remove_skill command to Tauri
-        // For now, we'll just update the status
+        await invoke('delete_skill_local', {
+          skillName,
+          agentId,
+        });
         updateSyncStatus(skillName, agentId, 'missing');
       }
 
