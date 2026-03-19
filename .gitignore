@@ -172,3 +172,5 @@ openspec/
 .agent/
 .agents/
 .claude/
+docs/
+.DS_Store
