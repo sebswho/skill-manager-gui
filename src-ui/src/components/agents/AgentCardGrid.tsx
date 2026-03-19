@@ -23,9 +23,10 @@ import { CheckSquare, Square } from 'lucide-react';
 
 interface AgentCardGridProps {
   skillName: string;
+  onResolveConflict?: (agentId: string) => void;
 }
 
-export function AgentCardGrid({ skillName }: AgentCardGridProps) {
+export function AgentCardGrid({ skillName, onResolveConflict }: AgentCardGridProps) {
   const {
     agents,
     syncMatrix,
@@ -45,6 +46,18 @@ export function AgentCardGrid({ skillName }: AgentCardGridProps) {
       }
     });
     return installed;
+  }, [syncMatrix, skillName]);
+
+  // Get conflicts for this skill
+  const conflicts = useMemo(() => {
+    const statusMap = syncMatrix[skillName] || {};
+    const conflictSet = new Set<string>();
+    Object.entries(statusMap).forEach(([agentId, status]) => {
+      if (status === 'conflict') {
+        conflictSet.add(agentId);
+      }
+    });
+    return conflictSet;
   }, [syncMatrix, skillName]);
 
   // Initialize selected agents to match current installations on mount
@@ -102,7 +115,9 @@ export function AgentCardGrid({ skillName }: AgentCardGridProps) {
                 agent={agent}
                 isInstalled={currentInstallations.has(agent.id)}
                 isSelected={selectedAgentsForSync.has(agent.id)}
+                hasConflict={conflicts.has(agent.id)}
                 onToggle={() => handleToggle(agent.id)}
+                onResolveConflict={conflicts.has(agent.id) && onResolveConflict ? () => onResolveConflict(agent.id) : undefined}
               />
             ))}
           </div>
