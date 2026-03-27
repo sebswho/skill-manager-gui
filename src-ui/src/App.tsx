@@ -15,7 +15,7 @@
  * along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { SkillDetailPanel } from '@/components/skills/SkillDetailPanel';
@@ -27,16 +27,22 @@ import { useAgents } from '@/hooks/useAgents';
 import { useSkills } from '@/hooks/useSkills';
 import { useAppStore } from '@/stores/appStore';
 import { isTauriEnv, isDevMode } from '@/utils/tauriEnv';
+import { useI18n } from '@/i18n';
 
 function AppContent() {
   const { loadConfig } = useConfig();
   const { discoverAgents } = useAgents();
   const { scanAll } = useSkills();
-  const { config, theme } = useAppStore();
+  const { config, theme, locale, agents } = useAppStore();
+  const { locale: i18nLocale, setLocale: setI18nLocale } = useI18n();
   
   // Use ref to track initialization state and prevent duplicate calls
   const initRef = useRef(false);
-  const scanRef = useRef(false);
+  const scanTrigger = useMemo(() => {
+    if (!config) return null;
+    const agentIds = agents.map((agent) => agent.id).sort().join(',');
+    return `${config.central_hub_path}|${agentIds}`;
+  }, [config, agents]);
 
   // Apply theme class when theme changes
   useEffect(() => {
@@ -46,6 +52,13 @@ function AppContent() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Keep i18n provider locale in sync with app store locale.
+  useEffect(() => {
+    if (i18nLocale !== locale) {
+      setI18nLocale(locale);
+    }
+  }, [locale, i18nLocale, setI18nLocale]);
 
   // Initialize app only once (fix for React Strict Mode double call)
   useEffect(() => {
@@ -72,19 +85,15 @@ function AppContent() {
     init();
   }, []); // Intentionally empty - using ref pattern to prevent double calls
 
-  // Scan skills when config is loaded
+  // Re-scan when hub path or agent set changes.
   useEffect(() => {
-    if (!config) return;
-    
-    // Skip if already scanning or scanned
-    if (scanRef.current) return;
-    scanRef.current = true;
+    if (!scanTrigger) return;
 
     // Scan all skills from hub and agents
     scanAll().catch(error => {
       console.error('Failed to scan skills:', error);
     });
-  }, [config]); // Only depends on config
+  }, [scanTrigger]); // Intentionally tied to trigger key, not function identity
 
   return (
     <MainLayout>

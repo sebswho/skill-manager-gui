@@ -26,15 +26,17 @@ import { HubPathSection } from "./HubPathSection";
 import { AgentsSection } from "./AgentsSection";
 import { ThemeSection } from "./ThemeSection";
 import { LanguageSelector } from "./LanguageSelector";
+import { useI18n } from "@/i18n";
 
 export function SettingsDrawer() {
   const { isSettingsOpen, setIsSettingsOpen } = useAppStore();
+  const { t } = useI18n();
 
   return (
     <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
       <SheetContent data-testid="settings-drawer" className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Settings</SheetTitle>
+          <SheetTitle>{t('settings.title')}</SheetTitle>
         </SheetHeader>
         <div className="py-6 space-y-6">
           <ThemeSection />

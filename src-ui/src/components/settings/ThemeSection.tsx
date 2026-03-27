@@ -20,10 +20,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAppStore } from '@/stores/appStore';
 import { useConfig } from '@/hooks/useConfig';
 import type { Theme } from '@/types';
+import { useI18n } from '@/i18n';
 
 export function ThemeSection() {
   const { theme, setTheme } = useAppStore();
   const { updateTheme } = useConfig();
+  const { t } = useI18n();
 
   const handleThemeChange = async (newTheme: string) => {
     const themeValue = newTheme as Theme;
@@ -46,13 +48,13 @@ export function ThemeSection() {
 
   return (
     <div className="space-y-3">
-      <Label className="text-base font-semibold">主题</Label>
+      <Label className="text-base font-semibold">{t('settings.theme.title')}</Label>
       <RadioGroup value={theme} onValueChange={handleThemeChange}>
         <RadioGroupItem value="light">
-          <Label className="cursor-pointer">亮色</Label>
+          <Label className="cursor-pointer">{t('settings.theme.light')}</Label>
         </RadioGroupItem>
         <RadioGroupItem value="dark">
-          <Label className="cursor-pointer">暗色</Label>
+          <Label className="cursor-pointer">{t('settings.theme.dark')}</Label>
         </RadioGroupItem>
       </RadioGroup>
     </div>

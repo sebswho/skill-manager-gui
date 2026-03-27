@@ -58,12 +58,12 @@ export function SyncSummary({ skillName }: SyncSummaryProps) {
   return (
     <div className="text-sm space-y-1">
       {willInstallCount > 0 && (
-        <div className="text-blue-400">
+        <div data-testid="sync-summary-install" className="text-blue-400">
           • 将安装：1 个技能 → {willInstallCount} 个 Agent
         </div>
       )}
       {willRemoveCount > 0 && (
-        <div className="text-red-400">
+        <div data-testid="sync-summary-remove" className="text-red-400">
           • 将卸载：1 个技能 → {willRemoveCount} 个 Agent
         </div>
       )}

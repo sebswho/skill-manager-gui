@@ -31,12 +31,18 @@ import { Plus, FolderOpen } from "lucide-react";
 import { useConfig } from "@/hooks/useConfig";
 import { useAgents } from "@/hooks/useAgents";
 import { useDialog } from "@/hooks/useDialog";
+import { useSkills } from "@/hooks/useSkills";
+import { useAppStore } from "@/stores/appStore";
+import { useI18n } from "@/i18n";
 import type { Agent } from "@/types";
 
 export function AddAgentDialog() {
   const [open, setOpen] = useState(false);
+  const { agents } = useAppStore();
+  const { t } = useI18n();
   const { addAgent } = useConfig();
   const { validateAgentPath } = useAgents();
+  const { scanAll } = useSkills();
   const { pickDirectory, pickDirectoryWithDefault } = useDialog();
   
   // Quick add state
@@ -62,8 +68,9 @@ export function AddAgentDialog() {
 
   const handleQuickAdd = async () => {
     if (!quickPath.trim()) return;
+    const normalizedPath = quickPath.trim();
     
-    const isValid = await validateAgentPath(quickPath.trim());
+    const isValid = await validateAgentPath(normalizedPath);
     if (!isValid) {
       setError("Invalid directory path");
       return;
@@ -71,17 +78,27 @@ export function AddAgentDialog() {
 
     setIsAdding(true);
     try {
-      const name = inferNameFromPath(quickPath.trim());
+      const name = inferNameFromPath(normalizedPath);
       const id = name.toLowerCase().replace(/\s+/g, "-");
+
+      if (agents.some((agent) => agent.id === id)) {
+        setError("Agent ID already exists");
+        return;
+      }
+      if (agents.some((agent) => agent.skills_path === normalizedPath)) {
+        setError("This skills path is already configured");
+        return;
+      }
       
       const agent: Agent = {
         id,
         name,
-        skills_path: quickPath.trim(),
+        skills_path: normalizedPath,
         is_discovered: false,
       };
       
       await addAgent(agent);
+      await scanAll();
       setOpen(false);
       setQuickPath("");
       setError("");
@@ -95,8 +112,20 @@ export function AddAgentDialog() {
       setError("All fields are required");
       return;
     }
+    const normalizedId = agentId.trim();
+    const normalizedName = agentName.trim();
+    const normalizedPath = fullPath.trim();
 
-    const isValid = await validateAgentPath(fullPath.trim());
+    if (agents.some((agent) => agent.id === normalizedId)) {
+      setError("Agent ID already exists");
+      return;
+    }
+    if (agents.some((agent) => agent.skills_path === normalizedPath)) {
+      setError("This skills path is already configured");
+      return;
+    }
+
+    const isValid = await validateAgentPath(normalizedPath);
     if (!isValid) {
       setError("Invalid directory path");
       return;
@@ -105,13 +134,14 @@ export function AddAgentDialog() {
     setIsAdding(true);
     try {
       const agent: Agent = {
-        id: agentId.trim(),
-        name: agentName.trim(),
-        skills_path: fullPath.trim(),
+        id: normalizedId,
+        name: normalizedName,
+        skills_path: normalizedPath,
         is_discovered: false,
       };
       
       await addAgent(agent);
+      await scanAll();
       setOpen(false);
       setAgentId("");
       setAgentName("");
@@ -142,23 +172,23 @@ export function AddAgentDialog() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Plus className="w-4 h-4 mr-1" />
-          Add Agent
+          {t('settings.agents.addButton')}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Agent</DialogTitle>
+          <DialogTitle>{t('dialog.addAgent.title')}</DialogTitle>
         </DialogHeader>
         
         <Tabs defaultValue="quick" className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="quick">Quick Add</TabsTrigger>
-            <TabsTrigger value="full">Full Form</TabsTrigger>
+            <TabsTrigger value="quick">{t('settings.agents.quickAdd')}</TabsTrigger>
+            <TabsTrigger value="full">{t('settings.agents.fullForm')}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="quick" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="quick-path">Skills Directory Path</Label>
+              <Label htmlFor="quick-path">{t('settings.agents.skillsPath')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="quick-path"
@@ -187,13 +217,13 @@ export function AddAgentDialog() {
               disabled={isAdding || !quickPath.trim()}
               className="w-full"
             >
-              Add Agent
+              {t('settings.agents.addButton')}
             </Button>
           </TabsContent>
           
           <TabsContent value="full" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="agent-id">Agent ID</Label>
+              <Label htmlFor="agent-id">{t('settings.agents.agentId')}</Label>
               <Input
                 id="agent-id"
                 value={agentId}
@@ -202,7 +232,7 @@ export function AddAgentDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="agent-name">Display Name</Label>
+              <Label htmlFor="agent-name">{t('settings.agents.agentName')}</Label>
               <Input
                 id="agent-name"
                 value={agentName}
@@ -211,7 +241,7 @@ export function AddAgentDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="full-path">Skills Directory Path</Label>
+              <Label htmlFor="full-path">{t('settings.agents.skillsPath')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="full-path"
@@ -237,7 +267,7 @@ export function AddAgentDialog() {
               disabled={isAdding || !agentId.trim() || !agentName.trim() || !fullPath.trim()}
               className="w-full"
             >
-              Add Agent
+              {t('settings.agents.addButton')}
             </Button>
           </TabsContent>
         </Tabs>

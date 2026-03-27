@@ -7,7 +7,7 @@
  */
 
 import { useAppStore } from '@/stores/appStore';
-import type { ScanResult, Skill, SyncStatus } from '@/types';
+import type { ScanResult, Skill, SkillVersion, SyncStatus } from '@/types';
 import { safeInvoke, isTauriEnv, getTauriMockData } from '@/utils/tauriEnv';
 
 // Default scan result for non-Tauri environment
@@ -48,7 +48,7 @@ export function useSkills() {
   };
 
   const scanAll = async () => {
-    if (!config || agents.length === 0) return null;
+    if (!config) return null;
     
     setIsLoading(true);
     try {
@@ -93,8 +93,39 @@ export function useSkills() {
     }
   };
 
+  const getSkillVersions = async (skillName: string): Promise<SkillVersion[]> => {
+    if (!config) return [];
+
+    try {
+      const fallback = isTauriEnv()
+        ? undefined
+        : agents.map((agent) => ({
+            agent_id: agent.id,
+            agent_name: agent.name,
+            size: 0,
+            modified_at: new Date(0).toISOString(),
+            path: `${agent.skills_path}/${skillName}`,
+            hash: '',
+          }));
+
+      return await safeInvoke<SkillVersion[]>(
+        'get_skill_versions',
+        {
+          skillName,
+          agents,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
+    } catch (error) {
+      console.error('Failed to get skill versions:', error);
+      throw error;
+    }
+  };
+
   return {
     scanCentralHub,
     scanAll,
+    getSkillVersions,
   };
 }

@@ -21,7 +21,8 @@ import { useSyncStore } from '@/stores/syncStore';
 import { SyncSummary } from './SyncSummary';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Check, AlertCircle } from 'lucide-react';
-import { invoke } from '@tauri-apps/api/core';
+import { useSync } from '@/hooks/useSync';
+import { useSkills } from '@/hooks/useSkills';
 
 interface ActionBarProps {
   skillName: string;
@@ -32,10 +33,11 @@ export function ActionBar({ skillName }: ActionBarProps) {
     agents,
     syncMatrix,
     selectedAgentsForSync,
-    config,
     updateSyncStatus,
   } = useAppStore();
   const { isSyncing, syncError, syncSuccess, setIsSyncing, setSyncError, setSyncSuccess, resetSyncState } = useSyncStore();
+  const { syncToAgent, deleteSkillLocal } = useSync();
+  const { scanAll } = useSkills();
 
   // Calculate if there are changes
   const hasChanges = useMemo(() => {
@@ -83,26 +85,29 @@ export function ActionBar({ skillName }: ActionBarProps) {
 
       // Execute sync for each install
       for (const agentId of installs) {
-        await invoke('sync_skill', {
-          skillName,
-          agentId,
-        });
+        const agent = agents.find((item) => item.id === agentId);
+        if (!agent) {
+          throw new Error(`Agent not found: ${agentId}`);
+        }
+
+        const result = await syncToAgent(skillName, agent);
+        if (!result.success) {
+          throw new Error(result.message);
+        }
         updateSyncStatus(skillName, agentId, 'synced');
       }
 
       // Execute removal for each removal
-      if (config && removals.length > 0) {
-        for (const agentId of removals) {
-          await invoke('delete_skill_local', {
-            skillName,
-            agentId,
-            agents,
-            hubPath: config.central_hub_path,
-          });
-          updateSyncStatus(skillName, agentId, 'missing');
+      for (const agentId of removals) {
+        const result = await deleteSkillLocal(skillName, agentId);
+        if (!result.success) {
+          throw new Error(result.message);
         }
+        updateSyncStatus(skillName, agentId, 'missing');
       }
 
+      // Always re-scan after mutation to keep UI state aligned with filesystem truth.
+      await scanAll();
       setSyncSuccess(true);
       
       // Reset success state after 3 seconds
@@ -160,6 +165,7 @@ export function ActionBar({ skillName }: ActionBarProps) {
       <SyncSummary skillName={skillName} />
       
       <Button
+        data-testid="sync-action-button"
         size="lg"
         disabled={!hasChanges || isSyncing}
         onClick={handleSync}

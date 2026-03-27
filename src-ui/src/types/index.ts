@@ -79,3 +79,12 @@ export interface SyncResult {
   success: boolean;
   message: string;
 }
+
+export interface SkillVersion {
+  agent_id: string;
+  agent_name: string;
+  size: number;
+  modified_at: string;
+  path: string;
+  hash: string;
+}

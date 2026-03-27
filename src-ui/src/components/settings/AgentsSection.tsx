@@ -4,15 +4,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Bot, Trash2 } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 import { useConfig } from "@/hooks/useConfig";
+import { useSkills } from "@/hooks/useSkills";
+import { useI18n } from "@/i18n";
 import { AddAgentDialog } from "./AddAgentDialog";
 
 export function AgentsSection() {
   const { agents } = useAppStore();
   const { removeAgent } = useConfig();
+  const { scanAll } = useSkills();
+  const { t } = useI18n();
 
   const handleRemove = async (agentId: string) => {
     if (confirm("Are you sure you want to remove this agent?")) {
       await removeAgent(agentId);
+      await scanAll();
     }
   };
 
@@ -21,7 +26,7 @@ export function AgentsSection() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5" />
-          <h3 className="font-semibold">Agents</h3>
+          <h3 className="font-semibold">{t('settings.agents.title')}</h3>
         </div>
         <AddAgentDialog />
       </div>
@@ -55,7 +60,7 @@ export function AgentsSection() {
         ))}
         {agents.length === 0 && (
           <div className="text-center py-4 text-muted-foreground">
-            No agents configured. Click "Add Agent" to get started.
+            {t('settings.agents.description')}
           </div>
         )}
       </div>

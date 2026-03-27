@@ -1,7 +1,7 @@
-import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '@/stores/appStore';
 import { useConfig } from './useConfig';
 import type { Agent } from '@/types';
+import { getTauriMockData, isTauriEnv, safeInvoke } from '@/utils/tauriEnv';
 
 export function useAgents() {
   const { agents } = useAppStore();
@@ -9,8 +9,9 @@ export function useAgents() {
 
   const discoverAgents = async () => {
     try {
-      const discovered = await invoke<Agent[]>('discover_agents');
-      const existingIds = new Set(agents.map(a => a.id));
+      const fallback = isTauriEnv() ? undefined : getTauriMockData('agents');
+      const discovered = await safeInvoke<Agent[]>('discover_agents', {}, fallback);
+      const existingIds = new Set(useAppStore.getState().agents.map((agent) => agent.id));
       const newAgents = discovered.filter(a => !existingIds.has(a.id));
       
       if (newAgents.length > 0) {
@@ -31,7 +32,8 @@ export function useAgents() {
 
   const validateAgentPath = async (path: string): Promise<boolean> => {
     try {
-      return await invoke('validate_agent_path', { path });
+      const fallback = isTauriEnv() ? undefined : !!path.trim();
+      return await safeInvoke<boolean>('validate_agent_path', { path }, fallback);
     } catch (error) {
       console.error('Failed to validate path:', error);
       return false;

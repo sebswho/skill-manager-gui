@@ -3,10 +3,12 @@ import { RefreshCw, Settings, AlertTriangle } from 'lucide-react';
 import { useSkills } from '@/hooks/useSkills';
 import { useAppStore } from '@/stores/appStore';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { useI18n } from '@/i18n';
 
 export function Header() {
   const { scanAll } = useSkills();
   const { isLoading, pendingChanges, conflicts, resolvedConflicts, setIsSettingsOpen, setSelectedConflict } = useAppStore();
+  const { t } = useI18n();
   
   // Filter out resolved conflicts
   const unresolvedConflicts = conflicts.filter(c => !resolvedConflicts.has(c.skill_name));
@@ -21,7 +23,7 @@ export function Header() {
   return (
     <header className="border-b px-4 py-3 flex items-center justify-between bg-card">
       <div className="flex items-center gap-2">
-        <h1 className="text-xl font-semibold">Agent Skills Manager</h1>
+        <h1 className="text-xl font-semibold">{t('app.title')}</h1>
         {pendingChanges.length > 0 && (
           <span className="text-sm text-muted-foreground">
             ({pendingChanges.length} pending)
@@ -43,21 +45,23 @@ export function Header() {
         )}
         <ThemeToggle variant="outline" size="icon" />
         <Button
+          data-testid="refresh-button"
           variant="outline"
           size="sm"
           onClick={scanAll}
           disabled={isLoading}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('common.refresh')}
         </Button>
         <Button 
+          data-testid="open-settings-button"
           variant="outline" 
           size="sm"
           onClick={() => setIsSettingsOpen(true)}
         >
           <Settings className="w-4 h-4 mr-2" />
-          Settings
+          {t('common.settings')}
         </Button>
       </div>
     </header>

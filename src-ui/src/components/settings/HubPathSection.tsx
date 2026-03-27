@@ -23,10 +23,14 @@ import { Separator } from "@/components/ui/separator";
 import { Folder, Save } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 import { useConfig } from "@/hooks/useConfig";
+import { useSkills } from "@/hooks/useSkills";
+import { useI18n } from "@/i18n";
 
 export function HubPathSection() {
   const { config } = useAppStore();
   const { updateCentralHubPath } = useConfig();
+  const { scanAll } = useSkills();
+  const { t } = useI18n();
   const [path, setPath] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   
@@ -42,6 +46,7 @@ export function HubPathSection() {
     setIsSaving(true);
     try {
       await updateCentralHubPath(path.trim());
+      await scanAll();
     } finally {
       setIsSaving(false);
     }
@@ -51,11 +56,11 @@ export function HubPathSection() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Folder className="w-5 h-5" />
-        <h3 className="font-semibold">Central Hub Path</h3>
+        <h3 className="font-semibold">{t('settings.hubPath.title')}</h3>
       </div>
       <Separator />
       <div className="space-y-2">
-        <Label htmlFor="hub-path">Skills Directory</Label>
+        <Label htmlFor="hub-path">{t('settings.agents.skillsPath')}</Label>
         <div className="flex gap-2">
           <Input
             id="hub-path"
@@ -70,11 +75,11 @@ export function HubPathSection() {
             size="sm"
           >
             <Save className="w-4 h-4 mr-1" />
-            Save
+            {t('common.save')}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          All skills will be stored and synchronized from this directory.
+          {t('settings.hubPath.description')}
         </p>
       </div>
     </div>

@@ -9,15 +9,17 @@ import {
 import { useAppStore } from '@/stores/appStore';
 import { useConfig } from '@/hooks/useConfig';
 import type { Locale } from '@/types';
-
-const languages: { value: Locale; label: string }[] = [
-  { value: 'zh-CN', label: '中文 (简体)' },
-  { value: 'en', label: 'English' },
-];
+import { useI18n } from '@/i18n';
 
 export function LanguageSelector() {
   const { locale, setLocale } = useAppStore();
   const { updateLocale } = useConfig();
+  const { t } = useI18n();
+
+  const languages: { value: Locale; label: string }[] = [
+    { value: 'zh-CN', label: t('settings.language.zhCN') },
+    { value: 'en', label: t('settings.language.en') },
+  ];
 
   const handleLanguageChange = async (newLocale: string) => {
     const localeValue = newLocale as Locale;
@@ -33,10 +35,10 @@ export function LanguageSelector() {
 
   return (
     <div className="space-y-3">
-      <Label className="text-base font-semibold">语言 / Language</Label>
+      <Label className="text-base font-semibold">{t('settings.language.title')}</Label>
       <Select value={locale} onValueChange={handleLanguageChange}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="选择语言 / Select language" />
+          <SelectValue placeholder={t('settings.language.title')} />
         </SelectTrigger>
         <SelectContent>
           {languages.map((lang) => (
