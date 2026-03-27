@@ -46,10 +46,13 @@ impl SkillsScanner {
                     
                     if let Ok(metadata) = fs::metadata(path) {
                         let size = Self::calculate_dir_size(path);
-                        let modified = metadata.modified()
+                        let modified = metadata
+                            .modified()
                             .ok()
-                            .and_then(|t| t.elapsed().ok())
-                            .map(|d| format!("{:?} ago", d))
+                            .map(|t| {
+                                let datetime: chrono::DateTime<chrono::Local> = t.into();
+                                datetime.to_rfc3339()
+                            })
                             .unwrap_or_default();
                         
                         let hash = calculate_directory_hash(path).unwrap_or_default();
@@ -201,7 +204,7 @@ impl SkillsScanner {
     }
     
     /// Get detailed version information for a skill across all agents
-    pub fn get_skill_versions(&self, skill_name: &str, agents: &[Agent], hub_path: &str) -> Vec<SkillVersion> {
+    pub fn get_skill_versions(&self, skill_name: &str, agents: &[Agent], _hub_path: &str) -> Vec<SkillVersion> {
         let mut versions = Vec::new();
         
         for agent in agents {

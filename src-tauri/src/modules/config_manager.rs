@@ -55,7 +55,11 @@ impl ConfigManager {
         }
         
         let content = fs::read_to_string(&self.config_path)?;
-        let config: AppConfig = serde_json::from_str(&content)?;
+        let mut config: AppConfig = serde_json::from_str(&content)?;
+        let normalized = Self::normalize_config_paths(&mut config);
+        if normalized {
+            self.save(&config)?;
+        }
         Ok(config)
     }
     
@@ -81,9 +85,11 @@ impl ConfigManager {
     
     pub fn add_agent(&self, agent: Agent) -> Result<AppConfig> {
         let mut config = self.load()?;
+        let mut normalized_agent = agent;
+        normalized_agent.skills_path = Self::expand_tilde(&normalized_agent.skills_path);
         // Remove if exists
-        config.agents.retain(|a| a.id != agent.id);
-        config.agents.push(agent);
+        config.agents.retain(|a| a.id != normalized_agent.id);
+        config.agents.push(normalized_agent);
         self.save(&config)?;
         Ok(config)
     }
@@ -97,7 +103,7 @@ impl ConfigManager {
     
     pub fn update_central_hub_path(&self, path: String) -> Result<AppConfig> {
         let mut config = self.load()?;
-        config.central_hub_path = path;
+        config.central_hub_path = Self::expand_tilde(&path);
         self.save(&config)?;
         Ok(config)
     }
@@ -114,6 +120,42 @@ impl ConfigManager {
         config.locale = Some(locale);
         self.save(&config)?;
         Ok(config)
+    }
+
+    fn expand_tilde(path: &str) -> String {
+        if path == "~" {
+            return dirs::home_dir()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_else(|| path.to_string());
+        }
+
+        if let Some(rest) = path.strip_prefix("~/") {
+            if let Some(home) = dirs::home_dir() {
+                return home.join(rest).to_string_lossy().to_string();
+            }
+        }
+
+        path.to_string()
+    }
+
+    fn normalize_config_paths(config: &mut AppConfig) -> bool {
+        let mut changed = false;
+
+        let normalized_hub = Self::expand_tilde(&config.central_hub_path);
+        if normalized_hub != config.central_hub_path {
+            config.central_hub_path = normalized_hub;
+            changed = true;
+        }
+
+        for agent in &mut config.agents {
+            let normalized = Self::expand_tilde(&agent.skills_path);
+            if normalized != agent.skills_path {
+                agent.skills_path = normalized;
+                changed = true;
+            }
+        }
+
+        changed
     }
 }
 

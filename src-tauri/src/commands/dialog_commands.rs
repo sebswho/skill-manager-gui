@@ -15,6 +15,22 @@
 
 use tauri_plugin_dialog::DialogExt;
 
+fn default_directory() -> std::path::PathBuf {
+    dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("."))
+}
+
+fn expand_tilde(path: &str) -> std::path::PathBuf {
+    if path == "~" {
+        return default_directory();
+    }
+
+    if let Some(rest) = path.strip_prefix("~/") {
+        return default_directory().join(rest);
+    }
+
+    std::path::PathBuf::from(path)
+}
+
 /// Open a directory picker dialog
 #[tauri::command]
 pub async fn pick_directory(window: tauri::Window) -> Result<Option<String>, String> {
@@ -22,7 +38,7 @@ pub async fn pick_directory(window: tauri::Window) -> Result<Option<String>, Str
         .dialog()
         .file()
         .set_title("Select Agent Skills Directory")
-        .set_directory("~")
+        .set_directory(default_directory())
         .blocking_pick_folder();
 
     match result {
@@ -37,7 +53,7 @@ pub async fn pick_directory_with_default(
     window: tauri::Window,
     default_path: String,
 ) -> Result<Option<String>, String> {
-    let default_path_buf = std::path::PathBuf::from(&default_path);
+    let default_path_buf = expand_tilde(&default_path);
     
     let result = window
         .dialog()

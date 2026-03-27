@@ -91,8 +91,29 @@ impl AgentDiscovery {
     
     /// Validate if a path is a valid agent skills directory
     pub fn validate_agent_path(&self, path: &str) -> bool {
-        let path_buf = PathBuf::from(path);
+        if path.trim().is_empty() {
+            return false;
+        }
+
+        let normalized = Self::expand_tilde(path);
+        let path_buf = PathBuf::from(normalized);
         path_buf.exists() && path_buf.is_dir()
+    }
+
+    fn expand_tilde(path: &str) -> String {
+        if path == "~" {
+            return dirs::home_dir()
+                .map(|home| home.to_string_lossy().to_string())
+                .unwrap_or_else(|| path.to_string());
+        }
+
+        if let Some(rest) = path.strip_prefix("~/") {
+            if let Some(home) = dirs::home_dir() {
+                return home.join(rest).to_string_lossy().to_string();
+            }
+        }
+
+        path.to_string()
     }
 }
 

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::modules::file_operations::{copy_directory, create_symlink, delete_directory, is_path_inside, remove_symlink, calculate_directory_hash};
+use crate::modules::file_operations::{copy_directory, create_symlink, delete_directory, is_path_inside, remove_symlink};
 use crate::types::{Agent, PendingChange, SyncResult};
 use std::path::Path;
 use std::fs;
@@ -63,6 +63,15 @@ impl SyncEngine {
         
         if !source.exists() {
             return Err(SyncError::SkillNotFound(skill_name.to_string()));
+        }
+
+        // If source already links to destination, this skill is already synced to hub.
+        // Never delete `dest` in this case, otherwise hub data can be lost.
+        if Self::path_points_to(&source, &dest)? {
+            return Ok(SyncResult {
+                success: true,
+                message: format!("Skill '{}' already synced to hub", skill_name),
+            });
         }
         
         // Create a temporary backup before any destructive operations
@@ -328,6 +337,36 @@ impl SyncEngine {
     }
 }
 
+impl SyncEngine {
+    fn path_points_to(source: &Path, dest: &Path) -> Result<bool> {
+        if !source.is_symlink() {
+            return Ok(false);
+        }
+
+        let target = fs::read_link(source)?;
+        let source_parent = source.parent().unwrap_or_else(|| Path::new("."));
+        let resolved_target = if target.is_absolute() {
+            target
+        } else {
+            source_parent.join(target)
+        };
+
+        if resolved_target == dest {
+            return Ok(true);
+        }
+
+        if dest.exists() {
+            if let (Ok(target_canonical), Ok(dest_canonical)) =
+                (resolved_target.canonicalize(), dest.canonicalize())
+            {
+                return Ok(target_canonical == dest_canonical);
+            }
+        }
+
+        Ok(false)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum DeleteScope {
     Local { agent_id: String },
@@ -388,6 +427,39 @@ mod tests {
         let result = engine.sync_to_hub("nonexistent-skill", &agent, &hub_path.to_string_lossy());
         
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_sync_to_hub_is_noop_when_source_already_links_to_hub() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        let agent_path = temp_dir.path().join("agent/skills");
+        fs::create_dir_all(&hub_path).unwrap();
+        fs::create_dir_all(&agent_path).unwrap();
+
+        let hub_skill = hub_path.join("linked-skill");
+        fs::create_dir(&hub_skill).unwrap();
+        fs::write(hub_skill.join("file.txt"), "hub content").unwrap();
+
+        let agent_link = agent_path.join("linked-skill");
+        create_symlink(&hub_skill, &agent_link).unwrap();
+
+        let agent = Agent {
+            id: "test-agent".to_string(),
+            name: "Test Agent".to_string(),
+            skills_path: agent_path.to_string_lossy().to_string(),
+            is_discovered: false,
+        };
+
+        let engine = SyncEngine::new();
+        let result = engine
+            .sync_to_hub("linked-skill", &agent, &hub_path.to_string_lossy())
+            .unwrap();
+
+        assert!(result.success);
+        assert!(hub_skill.exists());
+        assert!(hub_skill.join("file.txt").exists());
+        assert!(agent_link.is_symlink());
     }
 
     #[test]
