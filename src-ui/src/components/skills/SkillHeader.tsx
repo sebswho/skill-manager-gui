@@ -19,7 +19,9 @@ import { useState } from 'react';
 import type { Skill } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit2, ChevronDown, ChevronUp, MapPin, FileCode, Calendar } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useAppStore } from '@/stores/appStore';
 
 interface SkillHeaderProps {
   skill: Skill;
@@ -27,6 +29,7 @@ interface SkillHeaderProps {
 
 export function SkillHeader({ skill }: SkillHeaderProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { locale } = useAppStore();
   
   const formatSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -36,53 +39,89 @@ export function SkillHeader({ skill }: SkillHeaderProps) {
   
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-CN', {
+    if (Number.isNaN(date.getTime())) return dateStr || '-';
+    return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
   };
 
-  // Mock description - in real app would come from skill metadata
-  const description = `自定义 React Hooks 集合，包含 useDebounce、useLocalStorage、useFetch 等常用 Hooks。这个技能包提供了开发 React 应用时最常用的工具函数，可以帮助你快速构建应用。`;
+  const description = `Path: ${skill.path}`;
   const shouldTruncate = description.length > 120;
   const displayDescription = isExpanded ? description : description.slice(0, 120);
 
   return (
-    <header className="pb-4 border-b border-slate-700">
-      <div className="flex items-start justify-between">
+    <header className="pb-6 border-b border-border/50">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-mono font-semibold truncate">{skill.name}</h1>
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-              📍 本地
+          {/* Skill Name */}
+          <h1 className="text-2xl font-heading font-bold truncate mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            {skill.name}
+          </h1>
+          
+          {/* Badges */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge 
+              variant="info" 
+              className="gap-1.5"
+            >
+              <MapPin className="w-3 h-3" />
+              本地
             </Badge>
-            <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-              📏 {formatSize(skill.size)}
+            <Badge 
+              variant="secondary"
+              className="gap-1.5"
+            >
+              <FileCode className="w-3 h-3" />
+              {formatSize(skill.size)}
             </Badge>
-            <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-              📅 {formatDate(skill.modified_at)}
+            <Badge 
+              variant="outline"
+              className="gap-1.5"
+            >
+              <Calendar className="w-3 h-3" />
+              {formatDate(skill.modified_at)}
             </Badge>
           </div>
         </div>
-        <Button variant="ghost" size="sm" className="shrink-0 ml-2">
-          <Edit2 className="w-4 h-4 mr-1" />
-          编辑
+        
+        {/* Edit Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="shrink-0 gap-2 rounded-xl active:scale-95 transition-transform"
+        >
+          <Edit2 className="w-4 h-4" />
+          <span className="font-semibold">编辑</span>
         </Button>
       </div>
       
-      <div className="mt-3 text-slate-300 text-sm leading-relaxed">
-        {displayDescription}
-        {shouldTruncate && !isExpanded && '...'}
+      {/* Description */}
+      <div className="mt-4 p-4 rounded-2xl bg-muted/30 border border-border/30">
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          {displayDescription}
+          {shouldTruncate && !isExpanded && '...'}
+        </p>
+        
         {shouldTruncate && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="ml-2 text-green-400 hover:text-green-300 inline-flex items-center gap-0.5"
+            className={cn(
+              "mt-2 text-sm font-semibold",
+              "text-primary hover:text-primary/80",
+              "inline-flex items-center gap-1",
+              "transition-colors"
+            )}
           >
             {isExpanded ? (
-              <>收起 <ChevronUp className="w-3 h-3" /></>
+              <>
+                收起 <ChevronUp className="w-3 h-3" />
+              </>
             ) : (
-              <>展开 <ChevronDown className="w-3 h-3" /></>
+              <>
+                展开全部 <ChevronDown className="w-3 h-3" />
+              </>
             )}
           </button>
         )}

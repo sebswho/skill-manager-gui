@@ -16,13 +16,22 @@
  */
 
 import { SkillLibrary } from '@/components/skills/SkillLibrary';
+import { StreakCounter } from '@/components/ui/streak-counter';
 
 export function Sidebar() {
   return (
-    <aside className="w-64 h-full bg-muted/50 border-r border-border flex flex-col">
-      <div className="p-4 border-b border-border">
-        <h2 className="font-mono font-semibold text-lg">📚 我的技能库</h2>
+    <aside className="w-64 h-full bg-gradient-to-b from-background to-muted/30 border-r border-border/50 flex flex-col shadow-clay">
+      {/* Header with Streak Counter */}
+      <div className="p-4 border-b border-border/50 bg-card/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading font-bold text-lg bg-gradient-to-r from-vibrant-rose to-vibrant-pink bg-clip-text text-transparent">
+            我的技能库
+          </h2>
+          <StreakCounter days={7} size="sm" />
+        </div>
       </div>
+      
+      {/* Skill Library */}
       <div className="flex-1 overflow-hidden">
         <SkillLibrary />
       </div>

@@ -15,7 +15,7 @@
  * along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Square, CheckSquare, AlertTriangle } from 'lucide-react';
+import { Square, CheckSquare, AlertTriangle, Bot, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Agent } from '@/types';
 
@@ -35,63 +35,149 @@ export function AgentCard({ agent, isInstalled, isSelected, hasConflict, onToggl
   
   // Get status text and color
   const getStatusInfo = () => {
-    if (hasConflict) return { text: '⚠️ 冲突', className: 'text-yellow-400' };
-    if (willInstall) return { text: '☑️ 将安装', className: 'text-blue-400' };
-    if (willRemove) return { text: '🗑️ 将卸载', className: 'text-red-400' };
-    if (isInstalled) return { text: '✅ 已安装', className: 'text-green-400' };
-    return { text: '⬜ 未安装', className: 'text-slate-500' };
+    if (hasConflict) return { 
+      text: '冲突', 
+      variant: 'warning',
+      className: 'text-vibrant-amber' 
+    };
+    if (willInstall) return { 
+      text: '将安装', 
+      variant: 'info',
+      className: 'text-vibrant-blue' 
+    };
+    if (willRemove) return { 
+      text: '将卸载', 
+      variant: 'destructive',
+      className: 'text-destructive' 
+    };
+    if (isInstalled) return { 
+      text: '已安装', 
+      variant: 'success',
+      className: 'text-vibrant-green' 
+    };
+    return { 
+      text: '未安装', 
+      variant: 'default',
+      className: 'text-muted-foreground' 
+    };
   };
   
   const statusInfo = getStatusInfo();
 
   return (
-    <div className="relative">
+    <div className="relative group">
       <button
         data-testid="agent-card"
+        data-selected={isSelected ? 'true' : 'false'}
+        data-installed={isInstalled ? 'true' : 'false'}
+        data-conflict={hasConflict ? 'true' : 'false'}
         onClick={hasConflict ? undefined : onToggle}
         disabled={hasConflict}
         className={cn(
-          'relative w-full p-3 rounded-lg border text-left transition-all duration-150',
-          'hover:scale-[1.02] active:scale-[0.98]',
-          hasConflict && 'border-yellow-500 bg-yellow-500/10',
-          !hasConflict && isSelected && 'border-green-400 bg-green-400/10',
-          !hasConflict && !isSelected && 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+          'relative w-full p-4 rounded-3xl border-2 text-left',
+          'transition-all duration-200 cursor-pointer',
+          'active:scale-95',
+          // Claymorphism shadow
+          'shadow-clay hover:shadow-clay-lg',
+          // Conflict state
+          hasConflict && 'border-vibrant-amber/50 bg-vibrant-amber/5',
+          // Selected state
+          !hasConflict && isSelected && [
+            'border-vibrant-green/50 bg-gradient-to-br from-vibrant-green/10 to-vibrant-blue/10',
+            'hover:border-vibrant-green',
+          ],
+          // Unselected state
+          !hasConflict && !isSelected && [
+            'border-border/50 bg-card/50',
+            'hover:border-primary/30 hover:bg-accent/50',
+          ]
         )}
       >
         {/* Selection indicator */}
         {!hasConflict && (
           <div
             className={cn(
-              'absolute top-2 right-2 w-5 h-5 rounded flex items-center justify-center',
-              isSelected ? 'bg-green-400 text-slate-900' : 'bg-slate-700 text-slate-400'
+              'absolute top-3 right-3 w-7 h-7 rounded-xl',
+              'flex items-center justify-center',
+              'transition-all duration-200',
+              'shadow-clay-sm',
+              isSelected 
+                ? 'bg-gradient-to-br from-vibrant-green to-vibrant-blue text-white' 
+                : 'bg-muted text-muted-foreground'
             )}
           >
-            {isSelected ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            {isSelected ? (
+              <CheckSquare className="w-4 h-4" />
+            ) : (
+              <Square className="w-4 h-4" />
+            )}
           </div>
         )}
 
         {/* Conflict warning */}
         {hasConflict && (
-          <div className="absolute top-2 right-2 w-5 h-5 rounded flex items-center justify-center bg-yellow-500 text-slate-900">
-            <AlertTriangle className="w-3.5 h-3.5" />
+          <div className={cn(
+            'absolute top-3 right-3 w-7 h-7 rounded-xl',
+            'flex items-center justify-center',
+            'bg-vibrant-amber text-white',
+            'shadow-clay-sm animate-wiggle'
+          )}>
+            <AlertTriangle className="w-4 h-4" />
           </div>
         )}
 
         {/* Agent icon */}
-        <div className="text-3xl mb-2">🤖</div>
+        <div className={cn(
+          'w-12 h-12 rounded-2xl mb-3',
+          'bg-gradient-to-br',
+          hasConflict 
+            ? 'from-vibrant-amber/20 to-vibrant-amber/10' 
+            : isSelected 
+              ? 'from-vibrant-green/20 to-vibrant-blue/20'
+              : 'from-muted to-muted/50',
+          'flex items-center justify-center',
+          'shadow-clay-sm',
+          'group-hover:scale-110 transition-transform'
+        )}>
+          <Bot className={cn(
+            'w-6 h-6',
+            hasConflict 
+              ? 'text-vibrant-amber' 
+              : isSelected 
+                ? 'text-vibrant-green' 
+                : 'text-muted-foreground'
+          )} />
+        </div>
 
         {/* Agent name */}
-        <div className="font-medium text-sm truncate pr-6">{agent.name}</div>
+        <div className="font-semibold text-sm truncate pr-8 mb-1.5 font-body">
+          {agent.name}
+        </div>
 
         {/* Status text */}
-        <div className={cn('text-xs mt-1.5', statusInfo.className)}>{statusInfo.text}</div>
+        <div className={cn(
+          'text-xs font-semibold flex items-center gap-1',
+          statusInfo.className
+        )}>
+          {statusInfo.variant === 'success' && <Sparkles className="w-3 h-3" />}
+          {statusInfo.text}
+        </div>
       </button>
       
       {/* Resolve conflict button */}
       {hasConflict && onResolveConflict && (
         <button
           onClick={onResolveConflict}
-          className="mt-2 w-full py-1.5 px-2 text-xs bg-yellow-500 text-slate-900 rounded hover:bg-yellow-400 transition-colors font-medium"
+          className={cn(
+            'mt-2 w-full py-2.5 px-3 text-sm',
+            'bg-gradient-to-r from-vibrant-amber to-vibrant-rose',
+            'text-white rounded-2xl',
+            'font-semibold',
+            'shadow-clay hover:shadow-clay-lg',
+            'active:scale-95',
+            'transition-all duration-200',
+            'cursor-pointer'
+          )}
         >
           解决冲突
         </button>

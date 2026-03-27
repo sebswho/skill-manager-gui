@@ -19,18 +19,19 @@ import { useState, useMemo } from 'react';
 import { useAppStore } from '@/stores/appStore';
 import { SkillNavItem } from './SkillNavItem';
 import { Input } from '@/components/ui/input';
-import { Search, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Plus, Folder, Package, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface SkillSection {
   id: string;
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   skills: string[];
 }
 
 export function SkillLibrary() {
-  const { skills, syncMatrix, selectedSkillId, setSelectedSkillId } = useAppStore();
+  const { skills, syncMatrix, selectedSkillId, setSelectedSkillId, agents } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['local', 'installed']));
 
@@ -46,9 +47,24 @@ export function SkillLibrary() {
       .map((s) => s.name);
     
     return [
-      { id: 'local', title: '本地', icon: '📁', skills: localSkills },
-      { id: 'installed', title: `已安装(${installedSkills.length})`, icon: '📦', skills: installedSkills },
-      { id: 'discover', title: '发现技能', icon: '🔍', skills: [] },
+      { 
+        id: 'local', 
+        title: '本地', 
+        icon: <Folder className="w-4 h-4" />,
+        skills: localSkills 
+      },
+      { 
+        id: 'installed', 
+        title: `已安装(${installedSkills.length})`, 
+        icon: <Package className="w-4 h-4" />,
+        skills: installedSkills 
+      },
+      { 
+        id: 'discover', 
+        title: '发现技能', 
+        icon: <Compass className="w-4 h-4" />,
+        skills: [] 
+      },
     ];
   }, [skills, syncMatrix]);
 
@@ -81,11 +97,11 @@ export function SkillLibrary() {
 
   const getSkillStatus = (skillName: string): 'synced' | 'unsynced' | 'conflict' => {
     const statusMap = syncMatrix[skillName] || {};
-    const agents = useAppStore.getState().agents;
+    const hasConflict = Object.values(statusMap).some((status) => status === 'conflict');
     const syncedCount = Object.values(statusMap).filter((s) => s === 'synced').length;
-    
-    if (syncedCount === 0) return 'unsynced';
-    if (syncedCount === agents.length) return 'synced';
+
+    if (hasConflict) return 'conflict';
+    if (agents.length > 0 && syncedCount === agents.length) return 'synced';
     return 'unsynced';
   };
 
@@ -93,42 +109,63 @@ export function SkillLibrary() {
     <div className="h-full flex flex-col">
       {/* Search */}
       <div className="p-3">
-        <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             placeholder="搜索技能..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 bg-slate-900/50 border-slate-700"
+            className={cn(
+              "pl-10 bg-card/50 border-border/50 rounded-2xl",
+              "focus:ring-2 focus:ring-primary/20 focus:border-primary",
+              "transition-all duration-200",
+              "shadow-clay-sm focus:shadow-clay"
+            )}
           />
         </div>
       </div>
 
       {/* Skill Sections */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
+      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
         {filteredSections.map((section) => (
-          <div key={section.id} className="mb-2">
+          <div key={section.id} className="rounded-2xl overflow-hidden">
             <button
+              data-testid={`skill-section-${section.id}`}
               onClick={() => toggleSection(section.id)}
-              className="w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 rounded-md transition-colors"
-            >
-              {expandedSections.has(section.id) ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold",
+                "text-foreground hover:bg-accent/50 rounded-xl",
+                "transition-all duration-200 active:scale-98",
+                "group"
               )}
-              <span>{section.icon}</span>
-              <span>{section.title}</span>
+            >
+              <div className={cn(
+                "p-1.5 rounded-lg",
+                section.id === 'local' && "bg-vibrant-blue/10 text-vibrant-blue",
+                section.id === 'installed' && "bg-vibrant-green/10 text-vibrant-green",
+                section.id === 'discover' && "bg-vibrant-amber/10 text-vibrant-amber",
+                "group-hover:scale-110 transition-transform"
+              )}>
+                {section.icon}
+              </div>
+              
+              <span className="flex-1 text-left">{section.title}</span>
+              
+              {expandedSections.has(section.id) ? (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              )}
             </button>
             
             {expandedSections.has(section.id) && (
-              <div className="mt-1 ml-4 space-y-0.5">
+              <div className="mt-1 ml-4 space-y-0.5 animate-accordion-down">
                 {section.id === 'discover' ? (
-                  <div className="px-3 py-2 text-sm text-slate-500">
-                    点击发现更多技能...
+                  <div className="px-4 py-3 text-sm text-muted-foreground rounded-xl bg-muted/30">
+                    点击发现更多精彩技能...
                   </div>
                 ) : section.skills.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-slate-500">
+                  <div className="px-4 py-3 text-sm text-muted-foreground rounded-xl bg-muted/30">
                     暂无技能
                   </div>
                 ) : (
@@ -149,10 +186,18 @@ export function SkillLibrary() {
       </div>
 
       {/* Add Skill Button */}
-      <div className="p-3 border-t border-slate-700">
-        <Button variant="ghost" className="w-full justify-start gap-2 text-slate-400 hover:text-slate-200">
+      <div className="p-3 border-t border-border/50">
+        <Button 
+          variant="ghost" 
+          className={cn(
+            "w-full justify-start gap-2",
+            "text-muted-foreground hover:text-foreground",
+            "hover:bg-accent/50 rounded-xl",
+            "transition-all duration-200 active:scale-98"
+          )}
+        >
           <Plus className="w-4 h-4" />
-          新增技能
+          <span className="font-semibold">新增技能</span>
         </Button>
       </div>
     </div>

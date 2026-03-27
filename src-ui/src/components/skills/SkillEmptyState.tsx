@@ -16,8 +16,9 @@
  */
 
 import { Button } from '@/components/ui/button';
-import { Target, BookOpen, Search } from 'lucide-react';
+import { BookOpen, Search, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
+import { MiniMascot } from '@/components/ui/mascot';
 
 export function SkillEmptyState() {
   const { toast } = useToast();
@@ -40,29 +41,56 @@ export function SkillEmptyState() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-8">
-      <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mb-6">
-        <Target className="w-10 h-10 text-green-400" />
+    <div className="flex flex-col items-center justify-center h-full text-center p-8 relative overflow-hidden">
+      {/* Decorative floating shapes */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-20 w-16 h-16 rounded-full bg-vibrant-rose/10 animate-float" />
+        <div className="absolute top-40 right-24 w-12 h-12 rounded-full bg-vibrant-blue/10 animate-float" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-32 left-32 w-20 h-20 rounded-full bg-vibrant-green/10 animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-20 right-16 w-14 h-14 rounded-full bg-vibrant-amber/10 animate-float" style={{ animationDelay: '1.5s' }} />
+      </div>
+
+      {/* Mascot */}
+      <div className="relative mb-8 animate-bounce-in">
+        <div className="absolute inset-0 bg-gradient-to-br from-vibrant-rose to-vibrant-pink rounded-full blur-2xl opacity-30 scale-150" />
+        <MiniMascot size="lg" emotion="happy" className="relative shadow-clay-lg" />
       </div>
       
-      <h2 className="text-xl font-semibold mb-2">欢迎使用 Agent Skills Manager</h2>
-      <p className="text-slate-400 mb-8 max-w-md">
+      {/* Title */}
+      <h2 className="text-3xl font-heading font-bold mb-3 bg-gradient-to-r from-vibrant-rose via-vibrant-pink to-vibrant-blue bg-clip-text text-transparent">
+        欢迎使用 Agent Skills Manager
+      </h2>
+      
+      {/* Description */}
+      <p className="text-muted-foreground mb-8 max-w-md font-body text-base">
         点击左侧技能查看详情，并将技能分配到你的 AI 智能体
       </p>
       
+      {/* Action Buttons */}
       <div className="flex gap-4">
-        <Button variant="outline" className="gap-2" onClick={handleTutorial}>
+        <Button 
+          variant="outline" 
+          className="gap-2 px-6 rounded-2xl shadow-clay-sm hover:shadow-clay active:scale-95 transition-all" 
+          onClick={handleTutorial}
+        >
           <BookOpen className="w-4 h-4" />
-          查看教程
+          <span className="font-semibold">查看教程</span>
         </Button>
-        <Button className="gap-2 bg-green-500 hover:bg-green-600" onClick={handleDiscover}>
+        <Button 
+          className="gap-2 px-6 rounded-2xl shadow-glow hover:shadow-lg active:scale-95 transition-all"
+          onClick={handleDiscover}
+        >
           <Search className="w-4 h-4" />
-          发现技能
+          <span className="font-semibold">发现技能</span>
         </Button>
       </div>
       
-      <div className="mt-12 text-sm text-slate-500">
-        <p>提示：首次使用？从左侧"本地"分类添加你的第一个技能</p>
+      {/* Helper Tip */}
+      <div className="mt-12 flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50">
+        <Sparkles className="w-4 h-4 text-vibrant-amber" />
+        <p className="text-sm text-muted-foreground">
+          提示：首次使用？从左侧"本地"分类添加你的第一个技能
+        </p>
       </div>
     </div>
   );

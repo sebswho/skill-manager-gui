@@ -1,51 +1,82 @@
+/* Google Fonts - Fredoka & Nunito for playful, friendly design */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Light Mode - Playful & Vibrant (Duolingo-inspired) */
+    --background: 346 100% 97%; /* #FFF1F2 - Soft pink background */
+    --foreground: 222 47% 11%; /* #1E293B - Dark slate text */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --popover-foreground: 222 47% 11%;
+    
+    /* Primary - Vibrant Rose (Duolingo green alternative) */
+    --primary: 349 89% 48%; /* #E11D48 - Vibrant rose */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+    
+    /* Secondary - Soft Pink */
+    --secondary: 350 90% 72%; /* #FB7185 - Light pink */
+    --secondary-foreground: 222 47% 11%;
+    
+    /* Muted - Subtle gray */
+    --muted: 220 14% 96%; /* Very light gray */
+    --muted-foreground: 215 16% 47%; /* Medium gray text */
+    
+    /* Accent - Vibrant Blue (for CTAs and highlights) */
+    --accent: 217 91% 60%; /* #2563EB - Engagement blue */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Destructive - Keep standard red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 346 50% 90%; /* Soft pink border */
+    --input: 220 14% 96%; /* Light input background */
+    --ring: 349 89% 48%; /* Focus ring matches primary */
+    
+    /* Claymorphism-inspired large radius */
+    --radius: 1.25rem; /* 20px for friendly, rounded feel */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    /* Dark Mode - Still vibrant but eye-friendly */
+    --background: 222 47% 11%; /* #1E293B - Dark slate */
+    --foreground: 210 40% 98%; /* Almost white text */
+    --card: 222 47% 15%; /* Slightly lighter cards */
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 15%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    
+    /* Primary - Brighter in dark mode for visibility */
+    --primary: 349 89% 60%; /* Lighter rose */
+    --primary-foreground: 222 47% 11%;
+    
+    /* Secondary - Soft pink (darker variant) */
+    --secondary: 349 60% 45%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    
+    /* Muted */
+    --muted: 217 20% 25%;
+    --muted-foreground: 215 20% 65%;
+    
+    /* Accent - Brighter blue for dark mode */
+    --accent: 217 91% 65%;
+    --accent-foreground: 222 47% 11%;
+    
+    /* Destructive */
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 217 20% 25%;
+    --input: 217 20% 20%;
+    --ring: 349 89% 60%;
   }
 }
 
