@@ -15,22 +15,28 @@
  * along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { SkillDetailPanel } from '@/components/skills/SkillDetailPanel';
 import { SettingsDrawer } from '@/components/settings/SettingsDrawer';
 import { ConflictResolutionDialog } from '@/components/conflicts/ConflictResolutionDialog';
+import { ErrorBoundary, NonTauriFallback } from '@/components/ErrorBoundary';
 import { useConfig } from '@/hooks/useConfig';
 import { useAgents } from '@/hooks/useAgents';
 import { useSkills } from '@/hooks/useSkills';
 import { useAppStore } from '@/stores/appStore';
+import { isTauriEnv, isDevMode } from '@/utils/tauriEnv';
 
-function App() {
+function AppContent() {
   const { loadConfig } = useConfig();
   const { discoverAgents } = useAgents();
   const { scanAll } = useSkills();
   const { config, theme } = useAppStore();
+  
+  // Use ref to track initialization state and prevent duplicate calls
+  const initRef = useRef(false);
+  const scanRef = useRef(false);
 
   // Apply theme class when theme changes
   useEffect(() => {
@@ -41,28 +47,44 @@ function App() {
     }
   }, [theme]);
 
+  // Initialize app only once (fix for React Strict Mode double call)
   useEffect(() => {
+    // Skip if already initialized
+    if (initRef.current) return;
+    initRef.current = true;
+
     const init = async () => {
-      // First load config to get any previously saved agents
-      await loadConfig();
-      
-      // Then discover agents and persist any new ones
-      // This ensures auto-discovered agents are saved to config
-      // and won't be lost when adding custom agents later
-      await discoverAgents();
-      
-      // Reload config to ensure store has the complete list
-      await loadConfig();
+      try {
+        // First load config to get any previously saved agents
+        await loadConfig();
+        
+        // Then discover agents and persist any new ones
+        // This ensures auto-discovered agents are saved to config
+        // and won't be lost when adding custom agents later
+        await discoverAgents();
+        
+        // Reload config to ensure store has the complete list
+        await loadConfig();
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+      }
     };
     init();
-  }, []);
+  }, []); // Intentionally empty - using ref pattern to prevent double calls
 
+  // Scan skills when config is loaded
   useEffect(() => {
-    if (config) {
-      // Scan all skills from hub and agents
-      scanAll();
-    }
-  }, [config]);
+    if (!config) return;
+    
+    // Skip if already scanning or scanned
+    if (scanRef.current) return;
+    scanRef.current = true;
+
+    // Scan all skills from hub and agents
+    scanAll().catch(error => {
+      console.error('Failed to scan skills:', error);
+    });
+  }, [config]); // Only depends on config
 
   return (
     <MainLayout>
@@ -75,6 +97,19 @@ function App() {
       <SettingsDrawer />
       <ConflictResolutionDialog />
     </MainLayout>
+  );
+}
+
+function App() {
+  // Show non-Tauri fallback in production browser mode
+  if (!isTauriEnv() && !isDevMode()) {
+    return <NonTauriFallback />;
+  }
+
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   );
 }
 

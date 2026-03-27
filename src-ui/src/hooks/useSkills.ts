@@ -1,6 +1,22 @@
-import { invoke } from '@tauri-apps/api/core';
+/**
+ * Copyright (C) 2024 sebswho
+ * This file is part of Agent Skills Manager.
+ * 
+ * Skills Hook with Tauri Environment Detection
+ * Issue: P0 - Tauri environment detection missing
+ */
+
 import { useAppStore } from '@/stores/appStore';
 import type { ScanResult, Skill, SyncStatus } from '@/types';
+import { safeInvoke, isTauriEnv, getTauriMockData } from '@/utils/tauriEnv';
+
+// Default scan result for non-Tauri environment
+const getDefaultScanResult = (): ScanResult => ({
+  skills: getTauriMockData('skills'),
+  agent_statuses: [],
+  pending_changes: [],
+  conflicts: [],
+});
 
 export function useSkills() {
   const { 
@@ -17,9 +33,12 @@ export function useSkills() {
     if (!config) return [];
     
     try {
-      const skills = await invoke<Skill[]>('scan_central_hub', { 
-        hubPath: config.central_hub_path 
-      });
+      const fallback = isTauriEnv() ? undefined : getTauriMockData('skills');
+      const skills = await safeInvoke<Skill[]>(
+        'scan_central_hub',
+        { hubPath: config.central_hub_path },
+        fallback
+      );
       setSkills(skills);
       return skills;
     } catch (error) {
@@ -33,10 +52,15 @@ export function useSkills() {
     
     setIsLoading(true);
     try {
-      const result = await invoke<ScanResult>('scan_all', {
-        agents,
-        hubPath: config.central_hub_path,
-      });
+      const fallback = isTauriEnv() ? undefined : getDefaultScanResult();
+      const result = await safeInvoke<ScanResult>(
+        'scan_all',
+        {
+          agents,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
       
       setSkills(result.skills);
       setPendingChanges(result.pending_changes);

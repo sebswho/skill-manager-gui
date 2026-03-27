@@ -153,6 +153,82 @@ pub fn is_path_inside(child: &Path, parent: &Path) -> bool {
     }
 }
 
+/// Check if path is inside another path, resolving symlinks for existing paths
+/// This is more secure but requires paths to exist
+/// Use this when you need to verify the actual target of a symlink
+pub fn is_path_inside_resolved(child: &Path, parent: &Path) -> bool {
+    // Try to resolve both paths if they exist
+    let child_resolved = if child.exists() {
+        match child.canonicalize() {
+            Ok(c) => c,
+            Err(_) => return false,
+        }
+    } else {
+        match normalize_path(child) {
+            Some(c) => c,
+            None => return false,
+        }
+    };
+
+    let parent_resolved = if parent.exists() {
+        match parent.canonicalize() {
+            Ok(p) => p,
+            Err(_) => return false,
+        }
+    } else {
+        match normalize_path(parent) {
+            Some(p) => p,
+            None => return false,
+        }
+    };
+
+    child_resolved.starts_with(&parent_resolved)
+}
+
+/// Validate that a path is safe to operate on
+/// This combines both literal and resolved checks for maximum security
+pub fn validate_path_safety(child: &Path, parent: &Path) -> Result<()> {
+    // First check literal path (fast, no filesystem access)
+    if !is_path_inside(child, parent) {
+        // If literal check fails, check resolved (for symlink cases)
+        if !is_path_inside_resolved(child, parent) {
+            return Err(FileError::Io(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "Path traversal detected: path is outside allowed directory"
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Check if a path component is suspicious (contains escape sequences)
+pub fn is_suspicious_path_component(name: &std::ffi::OsStr) -> bool {
+    let name_str = name.to_string_lossy();
+    
+    // Check for common path traversal patterns
+    let suspicious_patterns = [
+        "..",
+        "~",
+        "$HOME",
+        "${HOME}",
+        "%HOME%",
+        "%USERPROFILE%",
+    ];
+    
+    for pattern in suspicious_patterns.iter() {
+        if name_str.contains(pattern) {
+            return true;
+        }
+    }
+    
+    // Check for null bytes (potential null byte injection)
+    if name_str.contains('\0') {
+        return true;
+    }
+    
+    false
+}
+
 /// Normalize a path without requiring it to exist
 /// Resolves . and .. components, and checks for traversal sequences
 fn normalize_path(path: &Path) -> Option<PathBuf> {
@@ -234,5 +310,99 @@ mod tests {
         fs::write(dir.join("a.txt"), "modified").unwrap();
         let hash3 = calculate_directory_hash(&dir).unwrap();
         assert_ne!(hash, hash3);
+    }
+
+    #[test]
+    fn test_is_path_inside_basic() {
+        let parent = Path::new("/home/user/skills");
+        let child = Path::new("/home/user/skills/my-skill");
+        assert!(is_path_inside(child, parent));
+
+        let outside = Path::new("/etc/passwd");
+        assert!(!is_path_inside(outside, parent));
+    }
+
+    #[test]
+    fn test_is_path_inside_traversal() {
+        let parent = Path::new("/home/user/skills");
+        let traversal = Path::new("/home/user/skills/../../../etc/passwd");
+        
+        // normalize_path should handle this
+        assert!(!is_path_inside(traversal, parent));
+    }
+
+    #[test]
+    fn test_is_path_inside_resolved() {
+        let temp_dir = TempDir::new().unwrap();
+        let parent = temp_dir.path().join("skills");
+        let child = temp_dir.path().join("skills/my-skill");
+        let outside = temp_dir.path().join("outside");
+        
+        fs::create_dir_all(&parent).unwrap();
+        fs::create_dir_all(&child).unwrap();
+        fs::create_dir_all(&outside).unwrap();
+        
+        // Both exist - should resolve canonical paths
+        assert!(is_path_inside_resolved(&child, &parent));
+        assert!(!is_path_inside_resolved(&outside, &parent));
+    }
+
+    #[test]
+    fn test_is_path_inside_resolved_symlink() {
+        let temp_dir = TempDir::new().unwrap();
+        let real_parent = temp_dir.path().join("real-skills");
+        let link_parent = temp_dir.path().join("linked-skills");
+        let child = link_parent.join("my-skill");
+        
+        fs::create_dir_all(&real_parent).unwrap();
+        
+        // Create symlink
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&real_parent, &link_parent).unwrap();
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_dir(&real_parent, &link_parent).unwrap();
+        
+        // The symlink parent should resolve to the real parent
+        // Note: child doesn't exist, so we test the symlink resolution of the parent
+        // When we resolve link_parent, it should point to real_parent
+        assert!(is_path_inside_resolved(&link_parent, &real_parent));
+        
+        // Also test that a file inside the linked parent is considered inside real parent
+        // when we use the link path
+        let real_child = real_parent.join("real-skill");
+        fs::create_dir_all(&real_child).unwrap();
+        let linked_child = link_parent.join("real-skill");
+        assert!(is_path_inside_resolved(&linked_child, &real_parent));
+    }
+
+    #[test]
+    fn test_validate_path_safety() {
+        let temp_dir = TempDir::new().unwrap();
+        let parent = temp_dir.path().join("skills");
+        let child = temp_dir.path().join("skills/safe-skill");
+        let outside = temp_dir.path().join("outside");
+        
+        fs::create_dir_all(&parent).unwrap();
+        fs::create_dir_all(&child).unwrap();
+        fs::create_dir_all(&outside).unwrap();
+        
+        // Safe path should pass
+        assert!(validate_path_safety(&child, &parent).is_ok());
+        
+        // Outside path should fail
+        assert!(validate_path_safety(&outside, &parent).is_err());
+    }
+
+    #[test]
+    fn test_is_suspicious_path_component() {
+        // Normal names should be fine
+        assert!(!is_suspicious_path_component(std::ffi::OsStr::new("my-skill")));
+        assert!(!is_suspicious_path_component(std::ffi::OsStr::new("skill_v1")));
+        
+        // Suspicious patterns should be caught
+        assert!(is_suspicious_path_component(std::ffi::OsStr::new("..")));
+        assert!(is_suspicious_path_component(std::ffi::OsStr::new("skill/../other")));
+        assert!(is_suspicious_path_component(std::ffi::OsStr::new("~")));
+        assert!(is_suspicious_path_component(std::ffi::OsStr::new("$HOME/skill")));
     }
 }

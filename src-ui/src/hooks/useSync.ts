@@ -1,6 +1,20 @@
-import { invoke } from '@tauri-apps/api/core';
+/**
+ * Copyright (C) 2024 sebswho
+ * This file is part of Agent Skills Manager.
+ * 
+ * Sync Hook with Tauri Environment Detection
+ * Issue: P0 - Tauri environment detection missing
+ */
+
 import { useAppStore } from '@/stores/appStore';
 import type { Agent, PendingChange, SyncResult } from '@/types';
+import { safeInvoke, isTauriEnv } from '@/utils/tauriEnv';
+
+// Default sync result for non-Tauri environment
+const defaultSyncResult: SyncResult = {
+  success: true,
+  message: 'Mock sync result (not in Tauri environment)',
+};
 
 export function useSync() {
   const { config, agents } = useAppStore();
@@ -9,11 +23,16 @@ export function useSync() {
     if (!config) throw new Error('No config');
     
     try {
-      const result = await invoke<SyncResult>('sync_to_hub', {
-        skillName,
-        sourceAgent,
-        hubPath: config.central_hub_path,
-      });
+      const fallback = isTauriEnv() ? undefined : defaultSyncResult;
+      const result = await safeInvoke<SyncResult>(
+        'sync_to_hub',
+        {
+          skillName,
+          sourceAgent,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
       
       return result;
     } catch (error) {
@@ -26,11 +45,16 @@ export function useSync() {
     if (!config) throw new Error('No config');
     
     try {
-      const result = await invoke<SyncResult>('sync_to_agent', {
-        skillName,
-        agent,
-        hubPath: config.central_hub_path,
-      });
+      const fallback = isTauriEnv() ? undefined : defaultSyncResult;
+      const result = await safeInvoke<SyncResult>(
+        'sync_to_agent',
+        {
+          skillName,
+          agent,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
       
       return result;
     } catch (error) {
@@ -43,11 +67,16 @@ export function useSync() {
     if (!config) throw new Error('No config');
     
     try {
-      const results = await invoke<SyncResult[]>('batch_sync', {
-        skills: skillNames,
-        agents: targetAgents,
-        hubPath: config.central_hub_path,
-      });
+      const fallback = isTauriEnv() ? undefined : [defaultSyncResult];
+      const results = await safeInvoke<SyncResult[]>(
+        'batch_sync',
+        {
+          skills: skillNames,
+          agents: targetAgents,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
       
       return results;
     } catch (error) {
@@ -60,11 +89,16 @@ export function useSync() {
     if (!config) throw new Error('No config');
     
     try {
-      const results = await invoke<SyncResult[]>('execute_changes', {
-        changes,
-        agents,
-        hubPath: config.central_hub_path,
-      });
+      const fallback = isTauriEnv() ? undefined : [defaultSyncResult];
+      const results = await safeInvoke<SyncResult[]>(
+        'execute_changes',
+        {
+          changes,
+          agents,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
       
       return results;
     } catch (error) {
@@ -77,12 +111,17 @@ export function useSync() {
     if (!config) throw new Error('No config');
     
     try {
-      const result = await invoke<SyncResult>('delete_skill_local', {
-        skillName,
-        agentId,
-        agents,
-        hubPath: config.central_hub_path,
-      });
+      const fallback = isTauriEnv() ? undefined : defaultSyncResult;
+      const result = await safeInvoke<SyncResult>(
+        'delete_skill_local',
+        {
+          skillName,
+          agentId,
+          agents,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
       
       return result;
     } catch (error) {
@@ -95,11 +134,16 @@ export function useSync() {
     if (!config) throw new Error('No config');
     
     try {
-      const result = await invoke<SyncResult>('delete_skill_global', {
-        skillName,
-        agents,
-        hubPath: config.central_hub_path,
-      });
+      const fallback = isTauriEnv() ? undefined : defaultSyncResult;
+      const result = await safeInvoke<SyncResult>(
+        'delete_skill_global',
+        {
+          skillName,
+          agents,
+          hubPath: config.central_hub_path,
+        },
+        fallback
+      );
       
       return result;
     } catch (error) {

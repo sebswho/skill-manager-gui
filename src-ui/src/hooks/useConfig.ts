@@ -1,15 +1,27 @@
-import { invoke } from '@tauri-apps/api/core';
+/**
+ * Copyright (C) 2024 sebswho
+ * This file is part of Agent Skills Manager.
+ * 
+ * Config Hook with Tauri Environment Detection
+ * Issue: P0 - Tauri environment detection missing
+ */
+
 import { useAppStore } from '@/stores/appStore';
 import type { Agent, AppConfig, Theme, Locale } from '@/types';
+import { safeInvoke, isTauriEnv, getTauriMockData } from '@/utils/tauriEnv';
 
 export function useConfig() {
   const { config, setConfig, setAgents, setTheme, setLocale } = useAppStore();
 
   const loadConfig = async () => {
     try {
-      const loaded = await invoke<AppConfig>('load_config');
+      // Use fallback mock data in non-Tauri environment
+      const fallbackConfig = isTauriEnv() ? undefined : getTauriMockData('config');
+      const loaded = await safeInvoke<AppConfig>('load_config', {}, fallbackConfig);
+      
       setConfig(loaded);
       setAgents(loaded.agents);
+      
       // Load theme and locale if saved
       if (loaded.theme) {
         setTheme(loaded.theme);
@@ -26,7 +38,7 @@ export function useConfig() {
 
   const saveConfig = async (newConfig: AppConfig) => {
     try {
-      await invoke('save_config', { config: newConfig });
+      await safeInvoke('save_config', { config: newConfig });
       setConfig(newConfig);
     } catch (error) {
       console.error('Failed to save config:', error);
@@ -36,7 +48,7 @@ export function useConfig() {
 
   const exportConfig = async (path: string) => {
     try {
-      await invoke('export_config', { path });
+      await safeInvoke('export_config', { path });
     } catch (error) {
       console.error('Failed to export config:', error);
       throw error;
@@ -45,7 +57,8 @@ export function useConfig() {
 
   const importConfig = async (path: string) => {
     try {
-      const loaded = await invoke<AppConfig>('import_config', { path });
+      const fallbackConfig = isTauriEnv() ? undefined : getTauriMockData('config');
+      const loaded = await safeInvoke<AppConfig>('import_config', { path }, fallbackConfig);
       setConfig(loaded);
       setAgents(loaded.agents);
       return loaded;
@@ -57,7 +70,8 @@ export function useConfig() {
 
   const addAgent = async (agent: Agent) => {
     try {
-      const updated = await invoke<AppConfig>('add_agent', { agent });
+      const fallbackConfig = isTauriEnv() ? undefined : getTauriMockData('config');
+      const updated = await safeInvoke<AppConfig>('add_agent', { agent }, fallbackConfig);
       setConfig(updated);
       setAgents(updated.agents);
       return updated;
@@ -69,7 +83,8 @@ export function useConfig() {
 
   const removeAgent = async (agentId: string) => {
     try {
-      const updated = await invoke<AppConfig>('remove_agent', { agentId });
+      const fallbackConfig = isTauriEnv() ? undefined : getTauriMockData('config');
+      const updated = await safeInvoke<AppConfig>('remove_agent', { agentId }, fallbackConfig);
       setConfig(updated);
       setAgents(updated.agents);
       return updated;
@@ -81,7 +96,8 @@ export function useConfig() {
 
   const updateCentralHubPath = async (path: string) => {
     try {
-      const updated = await invoke<AppConfig>('update_central_hub_path', { path });
+      const fallbackConfig = isTauriEnv() ? undefined : getTauriMockData('config');
+      const updated = await safeInvoke<AppConfig>('update_central_hub_path', { path }, fallbackConfig);
       setConfig(updated);
       return updated;
     } catch (error) {
@@ -92,7 +108,8 @@ export function useConfig() {
 
   const updateTheme = async (theme: Theme) => {
     try {
-      const updated = await invoke<AppConfig>('update_theme', { theme });
+      const fallbackConfig = isTauriEnv() ? undefined : getTauriMockData('config');
+      const updated = await safeInvoke<AppConfig>('update_theme', { theme }, fallbackConfig);
       setConfig(updated);
       setTheme(theme);
       return updated;
@@ -104,7 +121,8 @@ export function useConfig() {
 
   const updateLocale = async (locale: Locale) => {
     try {
-      const updated = await invoke<AppConfig>('update_locale', { locale });
+      const fallbackConfig = isTauriEnv() ? undefined : getTauriMockData('config');
+      const updated = await safeInvoke<AppConfig>('update_locale', { locale }, fallbackConfig);
       setConfig(updated);
       setLocale(locale);
       return updated;
