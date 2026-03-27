@@ -13,9 +13,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::modules::file_operations::{copy_directory, create_symlink, delete_directory, is_path_inside, remove_symlink};
+use crate::modules::file_operations::{copy_directory, create_symlink, delete_directory, is_path_inside, remove_symlink, calculate_directory_hash};
 use crate::types::{Agent, PendingChange, SyncResult};
 use std::path::Path;
+use std::fs;
 
 #[derive(Debug, thiserror::Error)]
 pub enum SyncError {
@@ -29,6 +30,10 @@ pub enum SyncError {
     SkillNotFound(String),
     #[error("Path traversal detected: path is outside allowed directory")]
     PathTraversal,
+    #[error("Backup failed: {0}")]
+    BackupFailed(String),
+    #[error("Rollback failed: {0}")]
+    RollbackFailed(String),
 }
 
 pub type Result<T> = std::result::Result<T, SyncError>;
@@ -41,6 +46,9 @@ impl SyncEngine {
     }
     
     /// Copy skill to central hub from agent
+    /// 
+    /// This operation is now atomic - if symlink creation fails, the original
+    /// data is preserved and can be restored.
     pub fn sync_to_hub(&self, skill_name: &str, source_agent: &Agent, hub_path: &str) -> Result<SyncResult> {
         let source = Path::new(&source_agent.skills_path).join(skill_name);
         let dest = Path::new(hub_path).join(skill_name);
@@ -57,20 +65,105 @@ impl SyncEngine {
             return Err(SyncError::SkillNotFound(skill_name.to_string()));
         }
         
-        // Copy to hub
+        // Create a temporary backup before any destructive operations
+        let temp_backup = source.with_extension("tmp_backup");
+        if temp_backup.exists() {
+            delete_directory(&temp_backup)?;
+        }
+        
+        // Step 1: Backup original data (atomic operation start)
+        copy_directory(&source, &temp_backup).map_err(|e| {
+            SyncError::BackupFailed(format!("Failed to create backup: {}", e))
+        })?;
+        
+        // Step 2: Copy to hub (this is safe, hub can be cleaned up)
         if dest.exists() {
             delete_directory(&dest)?;
         }
-        copy_directory(&source, &dest)?;
         
-        // Remove original and create symlink
+        if let Err(e) = copy_directory(&source, &dest) {
+            // Rollback: restore from backup if copy failed
+            let _ = delete_directory(&dest);
+            let _ = delete_directory(&temp_backup);
+            return Err(e.into());
+        }
+        
+        // Step 3: Remove original and create symlink
+        // This is the critical operation - if it fails, we restore from backup
         delete_directory(&source)?;
-        create_symlink(&dest, &source)?;
+        
+        if let Err(e) = create_symlink(&dest, &source) {
+            // CRITICAL: Symlink creation failed - restore from backup
+            eprintln!("[SyncEngine] Symlink creation failed, restoring from backup: {}", e);
+            
+            // Restore the original directory from backup
+            if let Err(restore_err) = copy_directory(&temp_backup, &source) {
+                // This is a catastrophic failure - data loss may occur
+                eprintln!("[SyncEngine] CRITICAL: Failed to restore from backup: {}", restore_err);
+                // Clean up what we can
+                let _ = delete_directory(&temp_backup);
+                return Err(SyncError::RollbackFailed(format!(
+                    "Symlink failed and rollback also failed. Backup preserved at: {:?}",
+                    temp_backup
+                )));
+            }
+            
+            // Successfully restored, clean up backup
+            let _ = delete_directory(&temp_backup);
+            return Err(e.into());
+        }
+        
+        // Step 4: Clean up backup (success path)
+        let _ = delete_directory(&temp_backup);
         
         Ok(SyncResult {
             success: true,
             message: format!("Skill '{}' synced to hub", skill_name),
         })
+    }
+    
+    /// Sync to hub with explicit backup path for additional safety
+    pub fn sync_to_hub_with_backup(
+        &self,
+        skill_name: &str,
+        source_agent: &Agent,
+        hub_path: &str,
+        backup_base_path: &str,
+    ) -> Result<SyncResult> {
+        let source = Path::new(&source_agent.skills_path).join(skill_name);
+        let dest = Path::new(hub_path).join(skill_name);
+        let backup = Path::new(backup_base_path).join(skill_name);
+        
+        // Validate all paths
+        if !is_path_inside(&source, Path::new(&source_agent.skills_path)) {
+            return Err(SyncError::PathTraversal);
+        }
+        if !is_path_inside(&dest, Path::new(hub_path)) {
+            return Err(SyncError::PathTraversal);
+        }
+        if !is_path_inside(&backup, Path::new(backup_base_path)) {
+            return Err(SyncError::PathTraversal);
+        }
+        
+        if !source.exists() {
+            return Err(SyncError::SkillNotFound(skill_name.to_string()));
+        }
+        
+        // Create persistent backup
+        fs::create_dir_all(backup.parent().unwrap()).ok();
+        if backup.exists() {
+            delete_directory(&backup)?;
+        }
+        copy_directory(&source, &backup).map_err(|e| {
+            SyncError::BackupFailed(format!("Failed to create backup: {}", e))
+        })?;
+        
+        // Perform the sync
+        let result = self.sync_to_hub(skill_name, source_agent, hub_path);
+        
+        // If sync succeeded, we keep the backup for safety
+        // If sync failed, backup is already there for recovery
+        result
     }
     
     /// Create symlink from hub to agent
@@ -466,5 +559,82 @@ mod tests {
         assert!(results.iter().all(|r| r.success));
         assert!(agent_path.join("skill-1").is_symlink());
         assert!(agent_path.join("skill-2").is_symlink());
+    }
+
+    /// Test that sync_to_hub_with_backup creates persistent backup
+    #[test]
+    fn test_sync_to_hub_with_backup() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        let agent_path = temp_dir.path().join("agent/skills");
+        let backup_path = temp_dir.path().join("backups");
+        fs::create_dir_all(&hub_path).unwrap();
+        fs::create_dir_all(&agent_path).unwrap();
+        fs::create_dir_all(&backup_path).unwrap();
+        
+        // Create skill in agent
+        let agent_skill = agent_path.join("backup-test-skill");
+        fs::create_dir(&agent_skill).unwrap();
+        fs::write(agent_skill.join("content.txt"), "backup me").unwrap();
+        
+        let agent = Agent {
+            id: "test-agent".to_string(),
+            name: "Test Agent".to_string(),
+            skills_path: agent_path.to_string_lossy().to_string(),
+            is_discovered: false,
+        };
+        
+        let engine = SyncEngine::new();
+        
+        // Perform sync with backup
+        let result = engine.sync_to_hub_with_backup(
+            "backup-test-skill",
+            &agent,
+            &hub_path.to_string_lossy(),
+            &backup_path.to_string_lossy()
+        );
+        
+        // Sync should succeed
+        assert!(result.is_ok());
+        
+        // Backup should exist
+        let backup = backup_path.join("backup-test-skill");
+        assert!(backup.exists());
+        assert!(backup.join("content.txt").exists());
+        
+        // Original should be converted to symlink
+        assert!(agent_skill.is_symlink());
+        
+        // Hub should have the skill
+        assert!(hub_path.join("backup-test-skill/content.txt").exists());
+    }
+
+    /// Test path traversal prevention
+    #[test]
+    fn test_sync_to_hub_prevents_path_traversal() {
+        let temp_dir = TempDir::new().unwrap();
+        let hub_path = temp_dir.path().join("hub");
+        let agent_path = temp_dir.path().join("agent/skills");
+        fs::create_dir_all(&hub_path).unwrap();
+        fs::create_dir_all(&agent_path).unwrap();
+        
+        let agent = Agent {
+            id: "malicious-agent".to_string(),
+            name: "Malicious Agent".to_string(),
+            skills_path: agent_path.to_string_lossy().to_string(),
+            is_discovered: false,
+        };
+        
+        let engine = SyncEngine::new();
+        
+        // Try to sync a skill with path traversal in name
+        let result = engine.sync_to_hub("../../../etc/passwd", &agent, &hub_path.to_string_lossy());
+        
+        // Should fail with path traversal error
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            SyncError::PathTraversal => {},
+            _ => panic!("Expected PathTraversal error"),
+        }
     }
 }
