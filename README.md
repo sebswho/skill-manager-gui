@@ -1,4 +1,4 @@
-# Agent Skills Manager
+# Skilltoon
 
 > A unified GUI for managing AI Agent Skills across multiple agents — built with Tauri 2.0.
 
@@ -10,7 +10,7 @@
 
 If you use multiple AI agents (Claude Code, CodeBuddy, Trae, iFlow, Codex, etc.), you've probably run into this: each agent has its own `skills/` directory, and keeping them in sync is a manual nightmare. Copy here, symlink there, forget to update one — it adds up fast.
 
-**Agent Skills Manager** fixes this with a central hub approach: store each Skill once, share it everywhere via symlinks.
+**Skilltoon** fixes this with a central hub approach: store each Skill once, share it everywhere via symlinks.
 
 ## Features
 
@@ -44,8 +44,8 @@ If you use multiple AI agents (Claude Code, CodeBuddy, Trae, iFlow, Codex, etc.)
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/skill-manager-gui.git
-cd skill-manager-gui
+git clone https://github.com/sebswho/Skilltoon.git
+cd Skilltoon
 
 # Install frontend dependencies
 bun install
@@ -65,7 +65,7 @@ The built app will be in `src-tauri/target/release/bundle/`.
 ## Project Structure
 
 ```
-skill-manager-gui/
+Skilltoon/
 ├── src-tauri/                  # Rust backend
 │   └── src/
 │       ├── main.rs             # Tauri entry point & command registration

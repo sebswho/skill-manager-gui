@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2024 sebswho
- * This file is part of Agent Skills Manager.
+ * This file is part of Skilltoon.
  * 
  * Sync Hook with Tauri Environment Detection
  * Issue: P0 - Tauri environment detection missing

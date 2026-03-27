@@ -1,4 +1,4 @@
-use agent_skills_manager::modules::file_operations::*;
+use skilltoon::modules::file_operations::*;
 use std::fs;
 use tempfile::TempDir;
 

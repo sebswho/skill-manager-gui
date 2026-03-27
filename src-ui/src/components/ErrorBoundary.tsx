@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2024 sebswho
- * This file is part of Agent Skills Manager.
+ * This file is part of Skilltoon.
  * 
  * Global Error Boundary Component
  * Issue: P2 - Missing global error boundary

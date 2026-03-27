@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2024 sebswho
- * This file is part of Agent Skills Manager.
+ * This file is part of Skilltoon.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';

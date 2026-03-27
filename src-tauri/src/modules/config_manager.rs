@@ -1,17 +1,17 @@
 // Copyright (C) 2024 sebswho
-// This file is part of Agent Skills Manager.
-// Agent Skills Manager is free software: you can redistribute it and/or modify
+// This file is part of Skilltoon.
+// Skilltoon is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Agent Skills Manager is distributed in the hope that it will be useful,
+// Skilltoon is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with Agent Skills Manager.  If not, see <https://www.gnu.org/licenses/>.
+// along with Skilltoon.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::{Agent, AppConfig};
 use serde_json;
@@ -36,15 +36,21 @@ pub struct ConfigManager {
 
 impl ConfigManager {
     pub fn new() -> Result<Self> {
-        let config_dir = dirs::config_dir()
-            .ok_or(ConfigError::ConfigDirNotFound)?
-            .join("agent-skills-manager");
-        
+        let base_config_dir = dirs::config_dir().ok_or(ConfigError::ConfigDirNotFound)?;
+        let config_dir = base_config_dir.join("skilltoon");
+        let legacy_config_path = base_config_dir
+            .join("agent-skills-manager")
+            .join("config.json");
+        let config_path = config_dir.join("config.json");
+
         fs::create_dir_all(&config_dir)?;
-        
-        Ok(Self {
-            config_path: config_dir.join("config.json"),
-        })
+
+        // Preserve existing user settings from the legacy app name on first launch.
+        if !config_path.exists() && legacy_config_path.exists() {
+            fs::copy(&legacy_config_path, &config_path)?;
+        }
+
+        Ok(Self { config_path })
     }
     
     pub fn load(&self) -> Result<AppConfig> {

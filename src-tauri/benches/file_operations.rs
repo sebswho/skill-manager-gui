@@ -14,7 +14,7 @@ fn benchmark_calculate_directory_hash(c: &mut Criterion) {
     
     c.bench_function("calculate_directory_hash_100_files", |b| {
         b.iter(|| {
-            agent_skills_manager::modules::file_operations::calculate_directory_hash(
+            skilltoon::modules::file_operations::calculate_directory_hash(
                 black_box(&test_dir)
             )
         });
@@ -37,7 +37,7 @@ fn benchmark_copy_directory(c: &mut Criterion) {
     c.bench_function("copy_directory_50_subdirs", |b| {
         b.iter(|| {
             let _ = fs::remove_dir_all(&dest);
-            agent_skills_manager::modules::file_operations::copy_directory(
+            skilltoon::modules::file_operations::copy_directory(
                 black_box(&src),
                 black_box(&dest)
             )

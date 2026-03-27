@@ -158,7 +158,7 @@ git push origin main --tags
 
 ---
 
-**Full Changelog**: https://github.com/sebswho/skill-manager-gui/compare/v0.2.0...v0.2.1
+**Full Changelog**: https://github.com/sebswho/Skilltoon/compare/v0.2.0...v0.2.1
 ```
 
 ---

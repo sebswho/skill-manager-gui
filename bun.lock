@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "agent-skills-manager-ui",
+      "name": "skilltoon-ui",
       "dependencies": {
         "@radix-ui/react-tabs": "^1.1.13",
         "@tauri-apps/api": "^2.0.0",

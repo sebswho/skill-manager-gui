@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Simple GUI test for Agent Skills Manager"""
+"""Simple GUI test for Skilltoon"""
 
 from playwright.sync_api import sync_playwright
 import time
@@ -23,7 +23,7 @@ def run_tests():
         # Check title
         title = page.locator('h1').text_content()
         print(f"\n[2] Title: {title}")
-        assert 'Agent Skills Manager' in title
+        assert 'Skilltoon' in title
         print("✓ Title correct")
         
         # Wait for scan

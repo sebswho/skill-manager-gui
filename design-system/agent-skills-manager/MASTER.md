@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** Agent Skills Manager
+**Project:** Skilltoon
 **Generated:** 2026-03-27 10:17:52
 **Category:** Pet Tech App
 

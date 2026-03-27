@@ -1,6 +1,6 @@
 # 贡献指南 (Contributing Guide)
 
-感谢您对 Agent Skills Manager 项目的关注！本指南将帮助您了解如何参与项目开发。
+感谢您对 Skilltoon 项目的关注！本指南将帮助您了解如何参与项目开发。
 
 ---
 
@@ -32,8 +32,8 @@ curl -fsSL https://bun.sh/install | bash
 cargo install tauri-cli
 
 # 4. 克隆仓库
-git clone https://github.com/sebswho/skill-manager-gui.git
-cd skill-manager-gui
+git clone https://github.com/sebswho/Skilltoon.git
+cd Skilltoon
 
 # 5. 安装依赖
 cd src-ui && bun install && cd ..

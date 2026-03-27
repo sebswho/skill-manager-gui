@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Self-test script for Agent Skills Manager
+Self-test script for Skilltoon
 Tests the GUI using Playwright
 """
 
@@ -29,7 +29,7 @@ def run_tests():
         
         # Test 2: Check title
         print("\n[Test 2] Checking app title...")
-        expect(page.locator('h1')).to_contain_text('Agent Skills Manager')
+        expect(page.locator('h1')).to_contain_text('Skilltoon')
         print("✓ Title is correct")
         
         # Test 3: Wait for scan to complete and check skills list
@@ -112,7 +112,7 @@ def run_tests():
         time.sleep(2)  # Wait for scan
         
         # Check if still working
-        expect(page.locator('text=Agent Skills Manager')).to_be_visible()
+        expect(page.locator('text=Skilltoon')).to_be_visible()
         print("✓ Refresh completed")
         
         # Final screenshot

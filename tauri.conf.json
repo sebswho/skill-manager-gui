@@ -1,7 +1,7 @@
 {
-  "productName": "Agent Skills Manager",
+  "productName": "Skilltoon",
   "version": "0.1.0",
-  "identifier": "com.agent.skills-manager",
+  "identifier": "com.sebswho.skilltoon",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Agent Skills Manager",
+        "title": "Skilltoon",
         "width": 1280,
         "height": 800,
         "minWidth": 800,

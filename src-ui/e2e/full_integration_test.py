@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Full Integration Test for Agent Skills Manager
+Full Integration Test for Skilltoon
 Tests with real Tauri backend and actual file system
 """
 
@@ -22,7 +22,7 @@ def run_tests():
         page = context.new_page()
         
         print("=" * 70)
-        print("AGENT SKILLS MANAGER - FULL INTEGRATION TEST")
+        print("SKILLTOON - FULL INTEGRATION TEST")
         print("=" * 70)
         
         # Note: Tauri apps don't expose a web server by default
@@ -30,7 +30,7 @@ def run_tests():
         # For now, let's just verify the app process is running and take system screenshots
         
         print("\n[1] Checking if Tauri app is running...")
-        result = subprocess.run(['pgrep', '-f', 'agent-skills-manager'], 
+        result = subprocess.run(['pgrep', '-f', 'skilltoon'], 
                               capture_output=True, text=True)
         if result.returncode == 0:
             pids = result.stdout.strip().split('\n')
@@ -48,17 +48,17 @@ def run_tests():
         
         # Check app resources
         print("\n[3] Verifying app bundle structure...")
-        app_path = "/Users/swamartin/workspace/projects/skill-manager-gui/src-tauri/target/release/bundle/macos/Agent Skills Manager.app"
+        app_path = "/Users/swamartin/workspace/projects/skill-manager-gui/src-tauri/target/release/bundle/macos/Skilltoon.app"
         
         # Check executable
-        exe_path = f"{app_path}/Contents/MacOS/agent-skills-manager"
+        exe_path = f"{app_path}/Contents/MacOS/skilltoon"
         result = subprocess.run(['ls', '-lh', exe_path], capture_output=True, text=True)
         if result.returncode == 0:
             print(f"✓ Executable found: {result.stdout.strip()}")
         
         # Check resources
         resources = [
-            "Contents/MacOS/agent-skills-manager",
+            "Contents/MacOS/skilltoon",
             "Contents/Resources",
             "Contents/Info.plist"
         ]
@@ -71,10 +71,10 @@ def run_tests():
         # Check if config directory would be created
         print("\n[4] Checking config location...")
         config_dir = subprocess.run(
-            ['echo', '$HOME/Library/Application Support/agent-skills-manager'],
+            ['echo', '$HOME/Library/Application Support/skilltoon'],
             capture_output=True, text=True, shell=True
         ).stdout.strip()
-        print(f"Config will be stored at: ~/Library/Application Support/agent-skills-manager/")
+        print(f"Config will be stored at: ~/Library/Application Support/skilltoon/")
         
         # Summary
         print("\n" + "=" * 70)
@@ -85,7 +85,7 @@ def run_tests():
         print("✓ App bundle structure is correct")
         print("✓ DMG installer created")
         print(f"  - App: {app_path}")
-        print(f"  - DMG: /Users/swamartin/workspace/projects/skill-manager-gui/src-tauri/target/release/bundle/dmg/Agent Skills Manager_0.1.0_aarch64.dmg")
+        print(f"  - DMG: /Users/swamartin/workspace/projects/skill-manager-gui/src-tauri/target/release/bundle/dmg/Skilltoon_0.1.0_aarch64.dmg")
         print("\n✓ FULL INTEGRATION TEST PASSED!")
         print("=" * 70)
         

@@ -1,4 +1,4 @@
-# Agent Skills Manager
+# Skilltoon
 
 > 基于 Tauri 2.0 的桌面应用，统一管理多个 AI Agent 的 Skills。
 
@@ -10,7 +10,7 @@
 
 如果你同时使用多个 AI Agent（Claude Code、CodeBuddy、Trae、iFlow、Codex 等），你大概已经遇到过这个困境：每个 Agent 都有自己的 `skills/` 目录，手动保持它们同步是一件费力不讨好的事情——复制粘贴、手动建软链接、忘记更新某一个……随着 Skill 和 Agent 数量的增加，维护成本呈指数级上升。
 
-**Agent Skills Manager** 用「中心仓库 + 软链接分发」的方式彻底解决这个问题：每个 Skill 只存一份，通过软链接同步到所有 Agent。
+**Skilltoon** 用「中心仓库 + 软链接分发」的方式彻底解决这个问题：每个 Skill 只存一份，通过软链接同步到所有 Agent。
 
 ## 功能特性
 
@@ -44,8 +44,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/skill-manager-gui.git
-cd skill-manager-gui
+git clone https://github.com/sebswho/Skilltoon.git
+cd Skilltoon
 
 # 安装前端依赖
 bun install
@@ -65,7 +65,7 @@ bun run tauri:build
 ## 项目结构
 
 ```
-skill-manager-gui/
+Skilltoon/
 ├── src-tauri/                  # Rust 后端
 │   └── src/
 │       ├── main.rs             # Tauri 入口 & 命令注册

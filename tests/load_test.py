@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Load test script for Agent Skills Manager
+Load test script for Skilltoon
 Creates mock data to test performance with large numbers of skills
 """
 

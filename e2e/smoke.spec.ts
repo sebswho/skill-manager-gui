@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2024 sebswho
- * Smoke Tests for Agent Skills Manager
+ * Smoke Tests for Skilltoon
  */
 
 import { test, expect } from '@playwright/test';
@@ -13,7 +13,7 @@ test.describe('Smoke Tests', () => {
 
   test('app loads successfully', async ({ page }) => {
     // Check that the app title is visible (use exact match)
-    await expect(page.getByRole('heading', { name: 'Agent Skills Manager', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Skilltoon', exact: true })).toBeVisible();
   });
 
   test('sidebar with skill library exists', async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe('Smoke Tests', () => {
 
   test('empty state shown when no skill selected', async ({ page }) => {
     // Should show welcome message
-    await expect(page.locator('text=欢迎使用 Agent Skills Manager')).toBeVisible();
+    await expect(page.locator('text=欢迎使用 Skilltoon')).toBeVisible();
   });
 
   test('search input exists in sidebar', async ({ page }) => {

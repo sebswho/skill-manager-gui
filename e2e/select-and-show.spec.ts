@@ -63,7 +63,7 @@ test.describe('Select-and-Show UI', () => {
     });
 
     test('should display empty state when no skill selected', async ({ page }) => {
-      await expect(page.locator('text=欢迎使用 Agent Skills Manager')).toBeVisible();
+      await expect(page.locator('text=欢迎使用 Skilltoon')).toBeVisible();
       await expect(page.locator('text=点击左侧技能查看详情')).toBeVisible();
     });
 
