@@ -7,8 +7,14 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  webServer: {
+    command: 'bun run dev --host 127.0.0.1 --port 1420',
+    url: 'http://127.0.0.1:1420',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
   use: {
-    baseURL: 'http://localhost:1420',
+    baseURL: 'http://127.0.0.1:1420',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

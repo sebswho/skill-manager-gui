@@ -58,8 +58,8 @@ test.describe('Select-and-Show UI', () => {
   test.describe('Layout', () => {
     test('should display sidebar with skill library', async ({ page }) => {
       await expect(page.locator('text=我的技能库')).toBeVisible();
-      await expect(page.getByRole('button', { name: '📁 本地' })).toBeVisible();
-      await expect(page.getByRole('button', { name: /已安装/ })).toBeVisible();
+      await expect(page.locator('[data-testid="skill-section-local"]')).toBeVisible();
+      await expect(page.locator('[data-testid="skill-section-installed"]')).toBeVisible();
     });
 
     test('should display empty state when no skill selected', async ({ page }) => {
@@ -125,8 +125,8 @@ test.describe('Select-and-Show UI', () => {
       // Click to select
       await firstAgentCard.click();
       
-      // Should have green border after selection
-      await expect(firstAgentCard).toHaveClass(/border-green-400/);
+      // Should be marked selected after click
+      await expect(firstAgentCard).toHaveAttribute('data-selected', 'true');
     });
   });
 
@@ -137,7 +137,7 @@ test.describe('Select-and-Show UI', () => {
       const firstSkill = page.locator('[data-testid="skill-nav-item"]').first();
       await firstSkill.click();
       
-      const syncButton = page.locator('button:has-text("一键同步")');
+      const syncButton = page.locator('[data-testid="sync-action-button"]');
       
       // Button should be disabled initially (no changes)
       await expect(syncButton).toBeDisabled();
@@ -158,7 +158,7 @@ test.describe('Select-and-Show UI', () => {
         await notInstalledCard.click();
         
         // Sync button should now be enabled
-        const syncButton = page.locator('button:has-text("一键同步")');
+        const syncButton = page.locator('[data-testid="sync-action-button"]');
         await expect(syncButton).toBeEnabled();
       }
     });
@@ -174,7 +174,7 @@ test.describe('Select-and-Show UI', () => {
         await notInstalledCard.click();
         
         // Summary should appear
-        await expect(page.locator('text=将安装')).toBeVisible();
+        await expect(page.locator('[data-testid="sync-summary-install"]')).toBeVisible();
       }
     });
   });

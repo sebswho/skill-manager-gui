@@ -19,8 +19,7 @@ test.describe('Smoke Tests', () => {
   test('sidebar with skill library exists', async ({ page }) => {
     // Check for new skill library sidebar
     await expect(page.locator('text=我的技能库')).toBeVisible();
-    // Use button role to specifically target the category header
-    await expect(page.getByRole('button', { name: '📁 本地' })).toBeVisible();
+    await expect(page.locator('[data-testid="skill-section-local"]')).toBeVisible();
   });
 
   test('empty state shown when no skill selected', async ({ page }) => {
@@ -44,15 +43,13 @@ test.describe('Smoke Tests', () => {
   });
 
   test('settings drawer can be opened', async ({ page }) => {
-    // Find settings button by its text
-    const settingsButton = page.getByRole('button', { name: 'Settings' });
+    const settingsButton = page.locator('[data-testid="open-settings-button"]');
     
     if (await settingsButton.isVisible().catch(() => false)) {
       await settingsButton.click();
       // Wait a bit for animation
       await page.waitForTimeout(300);
-      // Settings should appear - check for title
-      await expect(page.locator('text=Settings').first()).toBeVisible();
+      await expect(page.locator('[data-testid="settings-drawer"]')).toBeVisible();
     }
   });
 });

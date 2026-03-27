@@ -16,7 +16,8 @@
     "bundle:linux": "cd src-tauri && tauri build --target x86_64-unknown-linux-gnu",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug",
+    "check": "cargo test --manifest-path src-tauri/Cargo.toml && bunx vitest run && bun run build && bun run test:e2e"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",
